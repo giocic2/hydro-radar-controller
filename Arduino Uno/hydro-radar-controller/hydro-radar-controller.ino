@@ -31,7 +31,7 @@ const byte communication_MSB = B00000000;
 // Full TX power:
 // const byte communication_LSB = B00001000;
 // TX power reduced of 9dB:
-const byte communication_LSB = B00001111;
+ const byte communication_LSB = B00001111;
 // TX power reduced of 6dB:
 // const byte communication_LSB = B00001110;
 // TX power reduced of 4dB:
@@ -46,8 +46,10 @@ const byte R3[] =       { 0x00, 0x00, 0x00, 0x43};
 const byte R4[] =       { 0x00, 0x1F, 0xFF, 0x84};
 const byte R5_load1[] = { 0x00, 0x0B, 0xFF, 0xFD};
 const byte R5_load2[] = { 0x00, 0x4B, 0xFF, 0xFD};
+//const byte R5_load2[] = { 0x00, 0x80, 0x00, 0x7D};
 const byte R6_load1[] = { 0x00, 0x00, 0x00, 0x56};
-const byte R6_load2[] = { 0x00, 0x40, 0x00, 0x00};
+const byte R6_load2[] = { 0x00, 0x40, 0x00, 0x56};
+//const byte R6_load2[] = { 0x00, 0x80, 0x00, 0x06};
 byte R7[] =             { 0x00, 0x02, 0xFF, 0xFF};
 
 void setup() {
@@ -55,7 +57,7 @@ void setup() {
   pinMode(loadEnablePin,OUTPUT);
   digitalWrite(loadEnablePin,LOW);
   pinMode(externalTriggerPin,OUTPUT);
-  pinMode(externalTriggerPin,LOW);
+  digitalWrite(externalTriggerPin,LOW);
   pinMode(chipEnablePin,OUTPUT);
   pinMode(clockPin,OUTPUT);
   pinMode(serialOutPin,OUTPUT);
@@ -65,7 +67,8 @@ void setup() {
   // BGT24MTR11 programming.
   Serial.println("BGT24MTR11 programming started...");
   SPI.beginTransaction(SPISettings(125000,MSBFIRST,SPI_MODE0)); // min. 125kHz; strange signals on clockPin line due to this line.
-  trigger();
+
+//  trigger();
   
   digitalWrite(chipSelectNegPin,HIGH);
   delayMicroseconds(20);
@@ -82,6 +85,7 @@ void setup() {
   // ADF4158 programming.
   Serial.println("ADF4158 programming started...");
   SPI.beginTransaction(SPISettings(125000,MSBFIRST,SPI_MODE0)); // min. 125kHz; strange signals on clockPin line due to this line.
+  
   trigger();
   
   digitalWrite(chipEnablePin,LOW);
@@ -100,9 +104,9 @@ void setup() {
   transferRegister(R1);
   transferRegister(R0); //last one to be loaded (double-buffered).
 
-  delayMicroseconds(20);
-  digitalWrite(chipEnablePin,LOW);
-  delayMicroseconds(20);
+//  delayMicroseconds(20);
+//  digitalWrite(chipEnablePin,LOW);
+//  delayMicroseconds(20);
   SPI.endTransaction();
 
   Serial.println("ADF4158 programming ended.");
