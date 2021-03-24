@@ -24,14 +24,14 @@ const int externalTriggerPin = 7;
 // const byte MSB = B00000000;     //LNA Gain Red off -          Not Used       -         Not Used       - disable TX pwr on -        AMUX2 0     -   Test Bit  -   Test Bit  -   AMUX1 0
 // const byte LSB = B00001000;     //    AMUX0 0      - disable 64k divider off - disable 16 divider off - Hi LO buffer off  - High TX buffer off - TW pwr red2 - TW pwr red1 - TW pwr red0
 // TX ON:
-const byte communication_MSB = B00000000;
+ const byte communication_MSB = B00000000;
 // TX OFF:
 // const byte communication_MSB = B00010000;
 
 // Full TX power:
-// const byte communication_LSB = B00001000;
+ const byte communication_LSB = B00001000;
 // TX power reduced of 9dB:
- const byte communication_LSB = B00001111;
+// const byte communication_LSB = B00001111;
 // TX power reduced of 6dB:
 // const byte communication_LSB = B00001110;
 // TX power reduced of 4dB:
