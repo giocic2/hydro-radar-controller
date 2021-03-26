@@ -84,7 +84,7 @@ void setup() {
 
   // BGT24MTR11 programming.
   Serial.println("BGT24MTR11 programming started...");
-  SPI.beginTransaction(SPISettings(125000,MSBFIRST,SPI_MODE0)); // min. 125kHz; strange signals on clockPin line due to this line.
+  SPI.beginTransaction(SPISettings(125000,MSBFIRST,SPI_MODE1)); // min. 125kHz; strange signals on clockPin line due to this line.
 
 //  trigger();
   

@@ -47,7 +47,7 @@ const byte R4[] =       { 0x00, 0x1F, 0xD0, 0x04}; // 800ms steps.
 //const byte R4[] =       { 0x00, 0x18, 0xFA, 0x04}; // 100ms steps.
 const byte R5_load1[] = { 0x00, 0x49, 0x40, 0x05};
 const byte R5_load2[] = { 0x00, 0x80, 0x00, 0x7D};
-const byte R6_load1[] = { 0x00, 0x00, 0x00, 0x56};
+const byte R6_load1[] = { 0x00, 0x00, 0x00, 0xA6};
 const byte R6_load2[] = { 0x00, 0x80, 0x00, 0x06};
 byte R7[] =             { 0x00, 0x02, 0xFD, 0x07};
 
@@ -65,7 +65,7 @@ void setup() {
 
   // BGT24MTR11 programming.
   Serial.println("BGT24MTR11 programming started...");
-  SPI.beginTransaction(SPISettings(125000,MSBFIRST,SPI_MODE0)); // min. 125kHz; strange signals on clockPin line due to this line.
+  SPI.beginTransaction(SPISettings(125000,MSBFIRST,SPI_MODE1)); // min. 125kHz; strange signals on clockPin line due to this line.
 
 //  trigger();
   
