@@ -28,18 +28,18 @@ const int externalTriggerPin = 7;
 // TX OFF:
 // const byte communication_MSB = B00010000;
 
-// Full TX power:
- const byte communication_LSB = B00001000;
 // TX power reduced of 9dB:
 // const byte communication_LSB = B00001111;
 // TX power reduced of 6dB:
 // const byte communication_LSB = B00001110;
 // TX power reduced of 4dB:
 // const byte communication_LSB = B00001101;
+// Full TX power:
+ const byte communication_LSB = B00001000;
 
 // ADF4158 programming words.
 // Register values (obtained using ADIsimPLL and ADF4158 evaluation software):
-const byte R0[] =       { 0x00, 0x24, 0xB8, 0x00}; // 23.50 GHz
+//const byte R0[] =       { 0x00, 0x24, 0xB8, 0x00}; // 23.50 GHz
 //const byte R0[] =       { 0x00, 0x24, 0xCC, 0x00}; // 23.55 GHz
 //const byte R0[] =       { 0x00, 0x24, 0xE0, 0x00}; // 23.60 GHz
 //const byte R0[] =       { 0x00, 0x24, 0xF4, 0x00}; // 23.65 GHz
@@ -59,7 +59,7 @@ const byte R0[] =       { 0x00, 0x24, 0xB8, 0x00}; // 23.50 GHz
 //const byte R0[] =       { 0x00, 0x26, 0x0C, 0x00}; // 24.35 GHz
 //const byte R0[] =       { 0x00, 0x26, 0x20, 0x00}; // 24.40 GHz
 //const byte R0[] =       { 0x00, 0x26, 0x34, 0x00}; // 24.45 GHz
-//const byte R0[] =       { 0x00, 0x26, 0x48, 0x00}; // 24.50 GHz
+const byte R0[] =       { 0x00, 0x26, 0x48, 0x00}; // 24.50 GHz
 const byte R1[] =       { 0x00, 0x00, 0x00, 0x01};
 const byte R2[] =       { 0x02, 0x10, 0xFD, 0x02};
 const byte R3[] =       { 0x00, 0x00, 0x00, 0x43};
