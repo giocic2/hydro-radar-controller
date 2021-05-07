@@ -15,15 +15,6 @@ loadEnable = OutputDevice('BOARD7')
 loadEnable.active_high = True
 loadEnable.off()
 
-
-spi0 = spidev.SpiDev()
-# Use of /dev/spidev0.0, SPI0 with CE0 not used.
-# SCLK: BOARD23
-# MOSI: BOARD19
-spi0.open(0,0)
-spi0.max_speed_hz = 122000
-# CPOL=0, CPHA=1
-
 MSB = 0b00000000
 # bit7: Active-low LNA Gain Reduction (OFF)
 # bit6: Not Used
@@ -73,6 +64,13 @@ def transferRegister(register):
     time.sleep(1e-4)
 
 print('BGT24MTR11 programming started...')
+spi0 = spidev.SpiDev()
+# Use of /dev/spidev0.0, SPI0 with CE0 not used.
+# SCLK: BOARD23
+# MOSI: BOARD19
+spi0.open(0,0)
+spi0.max_speed_hz = 122000
+# CPOL=0, CPHA=1
 spi0.mode = 0b01
 # Enable BGT24MTR11 for SPI programming
 chipSelectNeg.on()
@@ -86,6 +84,9 @@ print('BGT24MTR11 programming ended.')
 
 # Enable ADF4158 for SPI programming
 print('ADF4158 programming started...')
+spi0.open(0,0)
+spi0.max_speed_hz = 122000
+# CPOL=0, CPHA=1
 spi0.mode = 0b00
 chipEnable.on()
 time.sleep(1e-4)
