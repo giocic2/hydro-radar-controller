@@ -333,13 +333,13 @@ print('Saving raw samples to .csv file...')
 timestamp = datetime.now().strftime("%Y%m%d_%I%M%S_%p")
 
 samplesFileNameChA = timestamp + "_ChA.csv"
-completeFileNameChA = os.path.join('../../raw-samples',samplesFileNameChA)
+completeFileNameChA = os.path.join('./raw-samples',samplesFileNameChA)
 with open(completeFileNameChA,'w') as file:
     writer = csv.writer(file)
     writer.writerows(zip(adc2mVChAMax,time))
     
 samplesFileNameChB = timestamp + "_ChB.csv"
-completeFileNameChB = os.path.join('../../raw-samples',samplesFileNameChB)
+completeFileNameChB = os.path.join('./raw-samples',samplesFileNameChB)
 with open(completeFileNameChB,'w') as file:
     writer = csv.writer(file)
     writer.writerows(zip(adc2mVChBMax,time))
