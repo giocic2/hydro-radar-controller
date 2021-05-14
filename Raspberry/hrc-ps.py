@@ -130,7 +130,7 @@ else:
 # PICOSCOPE ACQUISITION
 
 # Specify acquisition time
-ACQUISITION_TIME = 1 # s
+ACQUISITION_TIME = 0.1 # s
 samplingInterval = 1/SAMPLING_FREQUENCY
 totalSamples = round(ACQUISITION_TIME/samplingInterval)
 print('Number of total samples (for each channel): {:,}'.format(totalSamples))
