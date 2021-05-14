@@ -119,7 +119,7 @@ chipEnable.off()
 print('ADF4158 programming ended.')
 
 # Specify sampling frequency
-SAMPLING_FREQUENCY = 50e3 # Hz
+SAMPLING_FREQUENCY = 100e3 # Hz
 if SAMPLING_FREQUENCY >= 125e6:
     timebase = round(log(500e6/SAMPLING_FREQUENCY,2))
     print('Sampling frequency: {:,}'.format(1/(2**timebase/5)*1e8) + ' Hz')
@@ -130,7 +130,7 @@ else:
 # PICOSCOPE ACQUISITION
 
 # Specify acquisition time
-ACQUISITION_TIME = 0.1 # s
+ACQUISITION_TIME = 3e-3 # s
 samplingInterval = 1/SAMPLING_FREQUENCY
 totalSamples = round(ACQUISITION_TIME/samplingInterval)
 print('Number of total samples (for each channel): {:,}'.format(totalSamples))
