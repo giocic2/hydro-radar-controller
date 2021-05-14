@@ -40,7 +40,7 @@ git clone https://github.com/giocic2/hydro-radar-controller.git
 ### 3. Execute the script, after made it executable
 ```
 chmod +x ./hydro-radar-controller/Raspberry/hydro-radar-controller.py
-./hydro-radar-controller/Raspberry/hydro-radar-controller.py
+python3 ./hydro-radar-controller/Raspberry/hydro-radar-controller.py
 ```
 You can do the same with example scripts.
 ### 4. (Optional) Update repository discarding local changes, and make the Python script executable again
@@ -52,3 +52,5 @@ chmod +x /Raspberry/hydro-radar-controller.py
 chmod +x /Raspberry/example_20steps_50MHz_800ms.py
 chmod +x /Raspberry/constant-frequency.py
 ```
+## Configure Raspberry to use PicoScope
+Follow the instructions on the repository picotech/picosdk-python-wrappers. I have my own forked version, with the code to use PicoScope 2206B.
