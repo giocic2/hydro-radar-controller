@@ -92,13 +92,15 @@ time.sleep(1e-4)
 chipSelectNeg.off()
 print('BGT24MTR11 programming ended.')
 
-# Enable ADF4158 for SPI programming
+# ADF4158 power-on
+chipEnable.on()
+
+# ADF4158 programming
 print('ADF4158 programming started...')
 spi0.open(0,0)
 spi0.max_speed_hz = 122000
 # CPOL=0, CPHA=1
 spi0.mode = 0b00
-chipEnable.on()
 time.sleep(1e-4)
 
 transferRegister(R7)
@@ -114,8 +116,6 @@ transferRegister(R0) # last one to be loaded (double-buffered)
 
 spi0.close()
 time.sleep(1e-4)
-# Disable ADF4158 after successfull programming
-chipEnable.off()
 print('ADF4158 programming ended.')
 
 # Specify sampling frequency
