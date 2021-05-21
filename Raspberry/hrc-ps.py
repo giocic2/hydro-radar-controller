@@ -52,17 +52,65 @@ LSB = 0b00001000 # TX full power
 # TW output power reduction factors [dB] : 0, 0.4, 0.8, 1.4, 2.5, 4, 6, 9
 
 # Register values (obtained using ADIsimPLL and ADF4158 evaluation software)
-R0 =        [0x80, 0x24, 0xB8, 0x00]
+
+# Choose R0:
+print('Enter trasmitter frequency: (23500:50:24500 MHz)')
+VCOfreq = input()
+
+if VCOfreq == '23500':
+    R0, VCOfreq =        [0x00, 0x24, 0xB8, 0x00], '23500MHz'
+elif VCOfreq == '23550':
+    R0, VCOfreq =        [0x00, 0x24, 0xCC, 0x00], '23550MHz'
+elif VCOfreq == '23600':
+    R0, VCOfreq =        [0x00, 0x24, 0xE0, 0x00], '23600MHz'
+elif VCOfreq == '23650':
+    R0, VCOfreq =        [0x00, 0x24, 0xF4, 0x00], '23650MHz'
+elif VCOfreq == '23700':
+    R0, VCOfreq =        [0x00, 0x25, 0x08, 0x00], '23700MHz'
+elif VCOfreq == '23750':
+    R0, VCOfreq =        [0x00, 0x25, 0x1C, 0x00], '23750MHz'
+elif VCOfreq == '23800':
+    R0, VCOfreq =        [0x00, 0x25, 0x30, 0x00], '23800MHz'
+elif VCOfreq == '23850':
+    R0, VCOfreq =        [0x00, 0x25, 0x44, 0x00], '23850MHz'
+elif VCOfreq == '23900':
+    R0, VCOfreq =        [0x00, 0x25, 0x58, 0x00], '23900MHz'
+elif VCOfreq == '23950':
+    R0, VCOfreq =        [0x00, 0x25, 0x6C, 0x00], '23950MHz'
+elif VCOfreq == '24000':
+    R0, VCOfreq =        [0x00, 0x25, 0x80, 0x00], '24000MHz'
+elif VCOfreq == '24050':
+    R0, VCOfreq =        [0x00, 0x25, 0x94, 0x00], '24050MHz'
+elif VCOfreq == '24100':
+    R0, VCOfreq =        [0x00, 0x25, 0xA8, 0x00], '24100MHz'
+elif VCOfreq == '24150':
+    R0, VCOfreq =        [0x00, 0x25, 0xBC, 0x00], '24150MHz'
+elif VCOfreq == '24200':
+    R0, VCOfreq =        [0x00, 0x25, 0xD0, 0x00], '24200MHz'
+elif VCOfreq == '24250':
+    R0, VCOfreq =        [0x00, 0x25, 0xE4, 0x00], '24250MHz'
+elif VCOfreq == '24300':
+    R0, VCOfreq =        [0x00, 0x25, 0xF8, 0x00], '24300MHz'
+elif VCOfreq == '24350':
+    R0, VCOfreq =        [0x00, 0x26, 0x0C, 0x00], '24350MHz'
+elif VCOfreq == '24400':
+    R0, VCOfreq =        [0x00, 0x26, 0x20, 0x00], '24400MHz'
+elif VCOfreq == '24450':
+    R0, VCOfreq =        [0x00, 0x26, 0x34, 0x00], '24450MHz'
+elif VCOfreq == '24500':
+    R0, VCOfreq =        [0x00, 0x26, 0x48, 0x00], '24500MHz'
+else:
+    raise ValueError('Enter a valid tranmitter frequency value.')
+
 R1 =        [0x00, 0x00, 0x00, 0x01]
-R2 =        [0x02, 0x10, 0xFD, 0x02]
+R2 =        [0x02, 0x10, 0xFF, 0xFA]
 R3 =        [0x00, 0x00, 0x00, 0x43]
-R4 =        [0x00, 0x1F, 0xD0, 0x04] # 800ms steps
-# R4 =        [0x00, 0x18, 0xFA, 0x04] # 100ms steps
-R5_load1 =  [0x00, 0x49, 0x40, 0x05]
+R4 =        [0x00, 0x18, 0xC8, 0x04]
+R5_load1 =  [0x00, 0x4B, 0xFF, 0xFD]
 R5_load2 =  [0x00, 0x80, 0x00, 0x7D]
-R6_load1 =  [0x00, 0x00, 0x00, 0xA6]
+R6_load1 =  [0x00, 0x00, 0x00, 0x56]
 R6_load2 =  [0x00, 0x80, 0x00, 0x06]
-R7 =        [0x00, 0x02, 0xFD, 0x07]
+R7 =        [0x00, 0x02, 0xFF, 0xFF]
 
 def transferRegister(register):
     spi0.xfer(register)
@@ -130,7 +178,7 @@ else:
 # PICOSCOPE ACQUISITION
 
 # Specify acquisition time
-ACQUISITION_TIME = 3e-3 # s
+ACQUISITION_TIME = 1 # s
 samplingInterval = 1/SAMPLING_FREQUENCY
 totalSamples = round(ACQUISITION_TIME/samplingInterval)
 print('Number of total samples (for each channel): {:,}'.format(totalSamples))
@@ -309,12 +357,12 @@ adc2mVChBMax =  adc2mV(bufferBMax, chBRange, maxADC)
 timeAxis = np.linspace(0, (cTotalSamples.value) * (timeIntervalns.value-1), cTotalSamples.value)
 print('Done.')
 
-# plot data from channel A and B
-plt.plot(timeAxis, adc2mVChAMax[:])
-plt.plot(timeAxis, adc2mVChBMax[:])
-plt.xlabel('Time (ns)')
-plt.ylabel('Voltage (mV)')
-plt.show()
+# Plot data from channel A and B:
+# plt.plot(timeAxis, adc2mVChAMax[:])
+# plt.plot(timeAxis, adc2mVChBMax[:])
+# plt.xlabel('Time (ns)')
+# plt.ylabel('Voltage (mV)')
+# plt.show()
 
 # Stop the scope
 print('Closing the scope...')
@@ -333,13 +381,13 @@ startTime = time.time()
 print('Saving raw samples to .csv file...')
 timestamp = datetime.now().strftime("%Y%m%d_%I%M%S_%p")
 
-samplesFileNameChA = timestamp + "_ChA.csv"
+samplesFileNameChA = timestamp + "__" + VCOfreq + "__ChA.csv"
 completeFileNameChA = os.path.join('./raw-samples',samplesFileNameChA)
 with open(completeFileNameChA,'w') as file:
     writer = csv.writer(file)
     writer.writerows(zip(adc2mVChAMax,timeAxis))
     
-samplesFileNameChB = timestamp + "_ChB.csv"
+samplesFileNameChB = timestamp + "__" + VCOfreq + "__ChB.csv"
 completeFileNameChB = os.path.join('./raw-samples',samplesFileNameChB)
 with open(completeFileNameChB,'w') as file:
     writer = csv.writer(file)
