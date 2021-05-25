@@ -7,6 +7,8 @@ from gpiozero import OutputDevice
 import ctypes
 import numpy as np
 from picosdk.ps2000a import ps2000a as ps
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from picosdk.functions import adc2mV, assert_pico_ok
 import csv
@@ -167,7 +169,7 @@ time.sleep(1e-4)
 print('ADF4158 programming ended.')
 
 # Specify sampling frequency
-SAMPLING_FREQUENCY = 500e3 # Hz
+SAMPLING_FREQUENCY = 100e3 # Hz
 if SAMPLING_FREQUENCY >= 125e6:
     timebase = round(log(500e6/SAMPLING_FREQUENCY,2))
     print('Sampling frequency: {:,}'.format(1/(2**timebase/5)*1e8) + ' Hz')
@@ -184,6 +186,8 @@ totalSamples = round(ACQUISITION_TIME/samplingInterval)
 print('Number of total samples (for each channel): {:,}'.format(totalSamples))
 # Buffer memory size: 32 M
 
+FFT_FREQ_BINS = 2**16
+print('Number of frequency bins for FFT computation: {:,}'.format(FFT_FREQ_BINS))
 
 # Create chandle and status ready for use.
 # The c_int16 constructor accepts an optional integer initializer. Default: 0.
@@ -206,8 +210,8 @@ assert_pico_ok(status["openunit"])
 # coupling type = PS2000A_DC = 1
 # range = PS2000A_2V = 7
 # analogue offset = -2 V = -2
-chARange = 7
-status["setChA"] = ps.ps2000aSetChannel(chandle, 0, 1, 1, chARange, 0)
+chARange = 5
+status["setChA"] = ps.ps2000aSetChannel(chandle, 0, 1, 0, chARange, 0)
 assert_pico_ok(status["setChA"])
 # Set up channel B
 # handle = chandle
@@ -216,8 +220,8 @@ assert_pico_ok(status["setChA"])
 # coupling type = PS2000A_DC = 1
 # range = PS2000A_2V = 7
 # analogue offset = 0 V
-chBRange = 7
-status["setChB"] = ps.ps2000aSetChannel(chandle, 1, 1, 1, chBRange, 0)
+chBRange = 5
+status["setChB"] = ps.ps2000aSetChannel(chandle, 1, 1, 0, chBRange, 0)
 assert_pico_ok(status["setChB"])
 
 # Set up single trigger
@@ -252,6 +256,7 @@ status["getTimebase2"] = ps.ps2000aGetTimebase2(chandle,
                                                 ctypes.byref(returnedMaxSamples),
                                                 0)
 assert_pico_ok(status["getTimebase2"])
+time.sleep(1) # Wait transient after switch to AC coupling.
 print('Done.')
 
 # Block sampling mode
@@ -357,13 +362,6 @@ adc2mVChBMax =  adc2mV(bufferBMax, chBRange, maxADC)
 timeAxis = np.linspace(0, (cTotalSamples.value) * (timeIntervalns.value-1), cTotalSamples.value)
 print('Done.')
 
-# Plot data from channel A and B:
-# plt.plot(timeAxis, adc2mVChAMax[:])
-# plt.plot(timeAxis, adc2mVChBMax[:])
-# plt.xlabel('Time (ns)')
-# plt.ylabel('Voltage (mV)')
-# plt.show()
-
 # Stop the scope
 print('Closing the scope...')
 # handle = chandle
@@ -376,22 +374,121 @@ assert_pico_ok(status["close"])
 print('Done.')
 print(status)
 
-# Save raw samples to .csv file (with timestamp)
+# Save raw data to .csv file (with timestamp);
+# Save time domain plots to .png files;
+# Save frequency domain plots to .png files.
 startTime = time.time()
 print('Saving raw samples to .csv file...')
 timestamp = datetime.now().strftime("%Y%m%d_%I%M%S_%p")
 
+# ChA raw samples
 samplesFileNameChA = timestamp + "__" + VCOfreq + "__ChA.csv"
 completeFileNameChA = os.path.join('./raw-samples',samplesFileNameChA)
 with open(completeFileNameChA,'w') as file:
     writer = csv.writer(file)
     writer.writerows(zip(adc2mVChAMax,timeAxis))
-    
+# ChA time plot - Full length
+timePlotNameChA = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChA_time-full.png")
+plt.plot(timeAxis, adc2mVChAMax)
+plt.ylabel('ChA (mV)')
+plt.xlabel('Time (s)')
+plt.grid(True)
+plt.savefig(timePlotNameChA)
+# plt.show()
+plt.close()
+# ChA time plot - Zoom
+timePlotNameChA = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChA_time-zoom.png")
+plt.plot(timeAxis, adc2mVChAMax)
+plt.ylabel('Signal (mV)')
+plt.xlabel('Time (s)')
+plt.grid(True)
+plt.axis([0, 100e-3, -500, 500])
+plt.savefig(timePlotNameChA)
+# plt.show()
+plt.close()
+# FFT ChA
+ChA_FFT = np.fft.rfft(adc2mVChAMax, n = FFT_FREQ_BINS) # FFT of real signal
+ChA_FFT_mV = np.abs(2/(totalSamples)*ChA_FFT) # FFT magnitude
+ChA_FFT_dBV = 20*np.log10(ChA_FFT_mV/1000)
+# ChA_PSD = numpy.abs(ChA_FFT)**2
+# ChA_PSD_dBm = 10*numpy.log10(ChA_PSD/1e-3)
+freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
+freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
+print('Channel A - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChA_FFT_dBV.argmax()]) + ' Hz')
+# ChA spectrum - Full
+freqPlotNameChA = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChA_FFT-full.png")
+plt.plot(freqAxis_Hz, ChA_FFT_dBV)
+plt.ylabel('ChA spectrum (dBV)')
+plt.xlabel('Frequency (Hz)')
+plt.grid(True)
+plt.savefig(freqPlotNameChA)
+# plt.show()
+plt.close()
+# ChA spectrum - Zoom
+freqPlotNameChA = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChA_FFT-zoom.png")
+plt.plot(freqAxis_Hz, ChA_FFT_dBV)
+plt.ylabel('ChA spectrum (dBV)')
+plt.xlabel('Frequency (Hz)')
+plt.grid(True)
+plt.axis([0, 1e3, -100, 0])
+plt.savefig(freqPlotNameChA)
+# plt.show()
+plt.close()
+
+# ChB raw samples
 samplesFileNameChB = timestamp + "__" + VCOfreq + "__ChB.csv"
 completeFileNameChB = os.path.join('./raw-samples',samplesFileNameChB)
 with open(completeFileNameChB,'w') as file:
     writer = csv.writer(file)
     writer.writerows(zip(adc2mVChBMax,timeAxis))
-elapsedTime = time.time() - startTime
+# ChB time plot - Full length
+timePlotNameChB = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChB_time-full.png")
+plt.plot(timeAxis, adc2mVChBMax)
+plt.ylabel('ChB (mV)')
+plt.xlabel('Time (s)')
+plt.grid(True)
+plt.savefig(timePlotNameChB)
+# plt.show()
+plt.close()
+# ChB time plot - Zoom
+timePlotNameChB = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChB_time-zoom.png")
+plt.plot(timeAxis, adc2mVChBMax)
+plt.ylabel('ChB (mV)')
+plt.xlabel('Time (s)')
+plt.grid(True)
+plt.axis([0, 100e-3, -500, 500])
+plt.savefig(timePlotNameChB)
+# plt.show()
+plt.close()
+# FFT ChB
+ChB_FFT = np.fft.rfft(adc2mVChBMax, n = FFT_FREQ_BINS) # FFT of real signal
+ChB_FFT_mV = np.abs(2/(totalSamples)*ChB_FFT) # FFT magnitude
+ChB_FFT_dBV = 20*np.log10(ChB_FFT_mV/1000)
+# ChB_PSD = numpy.abs(ChB_FFT)**2
+# ChB_PSD_dBm = 10*numpy.log10(ChB_PSD/1e-3)
+freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
+freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
+print('Channel B - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChB_FFT_dBV.argmax()]) + ' Hz')
+# ChB spectrum - Full
+freqPlotNameChB = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChB_FFT-full.png")
+plt.plot(freqAxis_Hz, ChB_FFT_dBV)
+plt.ylabel('ChB spectrum (dBV)')
+plt.xlabel('Frequency (Hz)')
+plt.grid(True)
+plt.savefig(freqPlotNameChB)
+# plt.show()
+plt.close()
+# ChA spectrum - Zoom
+freqPlotNameChB = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChB_FFT-zoom.png")
+plt.plot(freqAxis_Hz, ChB_FFT_dBV)
+plt.ylabel('ChB spectrum (dBV)')
+plt.xlabel('Frequency (Hz)')
+plt.grid(True)
+plt.axis([0, 1e3, -100, 0])
+plt.savefig(freqPlotNameChB)
+# plt.show()
+plt.close()
 
-print('Done. Elapsed time for .csv files generation: {:.1f}'.format(elapsedTime) + ' s.')
+elapsedTime = time.time() - startTime
+print('Done. Elapsed time for data processing: {:.1f}'.format(elapsedTime) + ' s.')
+
