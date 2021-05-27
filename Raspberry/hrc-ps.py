@@ -186,7 +186,7 @@ totalSamples = round(ACQUISITION_TIME/samplingInterval)
 print('Number of total samples (for each channel): {:,}'.format(totalSamples))
 # Buffer memory size: 32 M
 
-FFT_FREQ_BINS = 2**16
+FFT_FREQ_BINS = 2**18
 print('Number of frequency bins for FFT computation: {:,}'.format(FFT_FREQ_BINS))
 
 # Create chandle and status ready for use.
@@ -379,16 +379,18 @@ print(status)
 # Save frequency domain plots to .png files.
 startTime = time.time()
 print('Saving raw samples to .csv file...')
+print('Computing FFT...')
+print('Generating .png plots...')
 timestamp = datetime.now().strftime("%Y%m%d_%I%M%S_%p")
 
 # ChA raw samples
 samplesFileNameChA = timestamp + "__" + VCOfreq + "__ChA.csv"
-completeFileNameChA = os.path.join('./raw-samples',samplesFileNameChA)
+completeFileNameChA = os.path.join('./data-acquired/raw-samples',samplesFileNameChA)
 with open(completeFileNameChA,'w') as file:
     writer = csv.writer(file)
     writer.writerows(zip(adc2mVChAMax,timeAxis))
 # ChA time plot - Full length
-timePlotNameChA = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChA_time-full.png")
+timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChA_time-full.png")
 plt.plot(timeAxis, adc2mVChAMax)
 plt.ylabel('ChA (mV)')
 plt.xlabel('Time (s)')
@@ -397,7 +399,7 @@ plt.savefig(timePlotNameChA)
 # plt.show()
 plt.close()
 # ChA time plot - Zoom
-timePlotNameChA = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChA_time-zoom.png")
+timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChA_time-zoom.png")
 plt.plot(timeAxis, adc2mVChAMax)
 plt.ylabel('Signal (mV)')
 plt.xlabel('Time (s)')
@@ -416,7 +418,7 @@ freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
 freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
 print('Channel A - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChA_FFT_dBV.argmax()]) + ' Hz')
 # ChA spectrum - Full
-freqPlotNameChA = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChA_FFT-full.png")
+freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChA_FFT-full.png")
 plt.plot(freqAxis_Hz, ChA_FFT_dBV)
 plt.ylabel('ChA spectrum (dBV)')
 plt.xlabel('Frequency (Hz)')
@@ -425,7 +427,7 @@ plt.savefig(freqPlotNameChA)
 # plt.show()
 plt.close()
 # ChA spectrum - Zoom
-freqPlotNameChA = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChA_FFT-zoom.png")
+freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChA_FFT-zoom.png")
 plt.plot(freqAxis_Hz, ChA_FFT_dBV)
 plt.ylabel('ChA spectrum (dBV)')
 plt.xlabel('Frequency (Hz)')
@@ -437,12 +439,12 @@ plt.close()
 
 # ChB raw samples
 samplesFileNameChB = timestamp + "__" + VCOfreq + "__ChB.csv"
-completeFileNameChB = os.path.join('./raw-samples',samplesFileNameChB)
+completeFileNameChB = os.path.join('./data-acquired/raw-samples',samplesFileNameChB)
 with open(completeFileNameChB,'w') as file:
     writer = csv.writer(file)
     writer.writerows(zip(adc2mVChBMax,timeAxis))
 # ChB time plot - Full length
-timePlotNameChB = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChB_time-full.png")
+timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChB_time-full.png")
 plt.plot(timeAxis, adc2mVChBMax)
 plt.ylabel('ChB (mV)')
 plt.xlabel('Time (s)')
@@ -451,7 +453,7 @@ plt.savefig(timePlotNameChB)
 # plt.show()
 plt.close()
 # ChB time plot - Zoom
-timePlotNameChB = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChB_time-zoom.png")
+timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChB_time-zoom.png")
 plt.plot(timeAxis, adc2mVChBMax)
 plt.ylabel('ChB (mV)')
 plt.xlabel('Time (s)')
@@ -470,7 +472,7 @@ freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
 freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
 print('Channel B - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChB_FFT_dBV.argmax()]) + ' Hz')
 # ChB spectrum - Full
-freqPlotNameChB = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChB_FFT-full.png")
+freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChB_FFT-full.png")
 plt.plot(freqAxis_Hz, ChB_FFT_dBV)
 plt.ylabel('ChB spectrum (dBV)')
 plt.xlabel('Frequency (Hz)')
@@ -479,7 +481,7 @@ plt.savefig(freqPlotNameChB)
 # plt.show()
 plt.close()
 # ChA spectrum - Zoom
-freqPlotNameChB = os.path.join('./raw-samples', timestamp + "__" + VCOfreq + "__ChB_FFT-zoom.png")
+freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChB_FFT-zoom.png")
 plt.plot(freqAxis_Hz, ChB_FFT_dBV)
 plt.ylabel('ChB spectrum (dBV)')
 plt.xlabel('Frequency (Hz)')
@@ -490,5 +492,5 @@ plt.savefig(freqPlotNameChB)
 plt.close()
 
 elapsedTime = time.time() - startTime
-print('Done. Elapsed time for data processing: {:.1f}'.format(elapsedTime) + ' s.')
+print('Done. Elapsed time: {:.1f}'.format(elapsedTime) + ' s.')
 
