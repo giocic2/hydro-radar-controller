@@ -1,3 +1,4 @@
+
 #!/usr/bin/python
 # Hydro Radar Controller with acquisition system based on Picoscope.
 
@@ -180,7 +181,7 @@ else:
 # PICOSCOPE ACQUISITION
 
 # Specify acquisition time
-ACQUISITION_TIME = 1 # s
+ACQUISITION_TIME = 2 # s
 samplingInterval = 1/SAMPLING_FREQUENCY
 totalSamples = round(ACQUISITION_TIME/samplingInterval)
 print('Number of total samples (for each channel): {:,}'.format(totalSamples))
@@ -232,7 +233,7 @@ assert_pico_ok(status["setChB"])
 # direction = PS2000A_RISING = 2
 # delay = 0 sample periods
 # auto Trigger = 1000 ms (if no trigger events occurs)
-status["trigger"] = ps.ps2000aSetSimpleTrigger(chandle, 1, 0, 1024, 2, 0, 1000)
+status["trigger"] = ps.ps2000aSetSimpleTrigger(chandle, 1, 0, 0, 2, 1000000, 5000)
 assert_pico_ok(status["trigger"])
 # Set number of pre and post trigger samples to be collected
 preTriggerSamples = round(totalSamples/2)
@@ -359,7 +360,7 @@ adc2mVChAMax =  adc2mV(bufferAMax, chARange, maxADC)
 adc2mVChBMax =  adc2mV(bufferBMax, chBRange, maxADC)
 
 # Create time data
-timeAxis = np.linspace(0, (cTotalSamples.value) * (timeIntervalns.value-1), cTotalSamples.value)
+timeAxis = 1e-9*(np.linspace(0, (cTotalSamples.value) * (timeIntervalns.value-1), cTotalSamples.value))
 print('Done.')
 
 # Stop the scope
@@ -404,7 +405,7 @@ plt.plot(timeAxis, adc2mVChAMax)
 plt.ylabel('Signal (mV)')
 plt.xlabel('Time (s)')
 plt.grid(True)
-plt.axis([0, 100e-3, -500, 500])
+plt.axis([0, 5e-3, -500, 500])
 plt.savefig(timePlotNameChA)
 # plt.show()
 plt.close()
@@ -432,7 +433,7 @@ plt.plot(freqAxis_Hz, ChA_FFT_dBV)
 plt.ylabel('ChA spectrum (dBV)')
 plt.xlabel('Frequency (Hz)')
 plt.grid(True)
-plt.axis([0, 1e3, -100, 0])
+plt.axis([0, 10e3, -100, 0])
 plt.savefig(freqPlotNameChA)
 # plt.show()
 plt.close()
@@ -458,7 +459,7 @@ plt.plot(timeAxis, adc2mVChBMax)
 plt.ylabel('ChB (mV)')
 plt.xlabel('Time (s)')
 plt.grid(True)
-plt.axis([0, 100e-3, -500, 500])
+plt.axis([0, 5e-3, -500, 500])
 plt.savefig(timePlotNameChB)
 # plt.show()
 plt.close()
@@ -486,7 +487,7 @@ plt.plot(freqAxis_Hz, ChB_FFT_dBV)
 plt.ylabel('ChB spectrum (dBV)')
 plt.xlabel('Frequency (Hz)')
 plt.grid(True)
-plt.axis([0, 1e3, -100, 0])
+plt.axis([0, 10e3, -100, 0])
 plt.savefig(freqPlotNameChB)
 # plt.show()
 plt.close()
