@@ -1,6 +1,7 @@
 # hydro-radar-controller
 BGT24MTR11 synchronized in frequency by ADF4158.
 BGT24MTR11 and ADF4158 programming with RaspberryPi (Python) or Arduino.
+The Python script named "hrc-ps.py" uses Raspberry Pi and Picoscope 2206B. This is the code I'm using to test the first prototype of the hydro-radar.
 ## Configure your Raspberry Pi from terminal
 ### 1. Enable SPI interface
 1. From Raspberry Pi terminal:
@@ -51,6 +52,7 @@ git pull
 chmod +x /Raspberry/hydro-radar-controller.py
 chmod +x /Raspberry/example_20steps_50MHz_800ms.py
 chmod +x /Raspberry/constant-frequency.py
+chmod +x /Raspberry/hrc-ps.py
 ```
 ## Configure Raspberry to use PicoScope
 Follow the instructions on the repository picotech/picosdk-python-wrappers. I have my own forked version, with the code to use PicoScope 2206B.
