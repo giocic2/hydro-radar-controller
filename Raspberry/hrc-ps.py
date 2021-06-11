@@ -144,6 +144,8 @@ while (continueCalibration = True):
 	z_g_avg = 0
 	tiltAngle_1st_avg = 0
 	tiltAngle_2nd_avg = 0
+# Accelerometer in sleep mode
+accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00000100)
 
 tiltAngle = str("{0:.0f}".format(numpy.rad2deg(tiltAngle_avg))) + "deg"
 
