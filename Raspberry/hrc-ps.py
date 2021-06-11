@@ -22,14 +22,13 @@ import busio
 import board
 from struct import unpack
 
+### ACCELEROMETER ###
+
 i2c = busio.I2C(board.SCL, board.SDA, frequency=100e3)
 accelerometer = adafruit_adxl34x.ADXL345(i2c)
 accelerometer.range = adafruit_adxl34x.Range.RANGE_16_G # Range
 
 # Offset compensation (MANUAL CALIBRATION)
-# OFSX = 0x2A # X-axis offset in LSBs (sensore amazon #1)
-# OFSY = 0x26 # Y-axis offset in LSBs (sensore amazon #1)
-# OFSZ = 0x80 # Z-axis offset in LSBs (sensore amazon #1)
 OFSX = 0x00 # X-axis offset in LSBs (sensore adafruit #1)
 OFSY = 0x00 # Y-axis offset in LSBs (sensore adafruit #1)
 OFSZ = 0x00 # Z-axis offset in LSBs (sensore adafruit #1)
@@ -79,14 +78,14 @@ z_max = 242
 delta_z = 500
 
 # Offset expressed in LSB.
-# We use this instead of OFS registers for finer tuning.
+# We use this instead of OFS_ registers for finer tuning.
 # These numbers depends on calibration.py results for a specific sensor.
 x_offset = round((x_min + x_max) / 2)
 y_offset = round((y_min + y_max) / 2)
 z_offset = round((z_min + z_max) / 2)
 
 # Calibrated full-scale factor, for rescaling.
-# We assume that LSB:g relation in linear after rescaling.
+# We assume that LSB:g relation is linear after rescaling.
 # These numbers depends on calibration.py results for a specific sensor.
 x_cfs = numpy.ceil(delta_x / 2)
 y_cfs = numpy.ceil(delta_y / 2)
@@ -94,12 +93,61 @@ z_cfs = numpy.ceil(delta_z / 2)
 
 time.sleep(1)
 
-averages = 20
+AVERAGES = 20
 x_g_avg = 0
 y_g_avg = 0
 z_g_avg = 0
 tiltAngle_1st_avg = 0
 tiltAngle_2nd_avg = 0
+continueCalibration = True
+
+while (continueCalibration = True):
+	for index in range(AVERAGES):
+		DATA_XYZ = accelerometer._read_register(adafruit_adxl34x._REG_DATAX0, 6)
+		time.sleep(0.1)
+		x, y, z = unpack("<hhh",DATA_XYZ)
+		x_g = x - x_offset
+		y_g = y - y_offset
+		z_g = z - z_offset
+		x_g_avg = x_g_avg + x_g/AVERAGES
+		y_g_avg = y_g_avg + y_g/AVERAGES
+		z_g_avg = z_g_avg + z_g/AVERAGES
+		# Two formulas to evaluate the same tilt angle
+		tiltAngle_1st = numpy.arcsin(- y_g / y_cfs)
+		tiltAngle_2nd = numpy.arccos(+ z_g / z_cfs)
+		tiltAngle_1st_avg = tiltAngle_1st_avg + tiltAngle_1st/AVERAGES
+		tiltAngle_2nd_avg = tiltAngle_2nd_avg + tiltAngle_2nd/AVERAGES
+	tiltAngle_avg = (tiltAngle_1st_avg + tiltAngle_2nd_avg) / 2
+# 	print("x y z [LSB]:", round(x_g_avg), round(y_g_avg), round(z_g_avg))
+# 	print("Tilt angle [deg] (two values that should be equal): {0:.2f} {1:.2f}".format(numpy.rad2deg(tiltAngle_1st_avg), numpy.rad2deg(tiltAngle_2nd_avg)))
+	print("Estimated tilt angle [deg]: {0:.0f}".format(numpy.rad2deg(tiltAngle_avg)))
+	if round(x_g_avg) != 0:
+		print("WARNING: gravity along X-axis should be 0! Please align the sensor horizontally.")
+		print("x: ", round(x_g_avg))
+	accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00000000)
+	accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00001000)
+	whatNext = input("Repeat calibration? [y/n]")
+	continueTakingUserInput = True
+	while continueTakingUserInput == True:
+		if whatNext == 'y'
+			continueCalibration = True
+			continueTakingUserInput = False
+		if whatNext == 'n'
+			continueCalibration = False
+			continueTakingUserInput = False
+		if whatNext != 'y' and whatNext != 'n'
+			print("Please type correctly [y/n].")
+			continueTakingUserInput = True
+	time.sleep(0.5)
+	x_g_avg = 0
+	y_g_avg = 0
+	z_g_avg = 0
+	tiltAngle_1st_avg = 0
+	tiltAngle_2nd_avg = 0
+
+tiltAngle = str("{0:.0f}".format(numpy.rad2deg(tiltAngle_avg))) + "deg"
+
+### TRX and PLL ###
 
 chipSelectNeg = OutputDevice('BOARD11')
 chipSelectNeg.active_high = False
@@ -252,6 +300,8 @@ spi0.close()
 time.sleep(1e-4)
 print('ADF4158 programming ended.')
 
+### PICOSCOPE ###
+
 # Specify sampling frequency
 SAMPLING_FREQUENCY = 100e3 # Hz
 if SAMPLING_FREQUENCY >= 125e6:
@@ -260,8 +310,6 @@ if SAMPLING_FREQUENCY >= 125e6:
 else:
     timebase=round(62.5e6/SAMPLING_FREQUENCY+2)
     print('Sampling frequency: {:,}'.format(62.5e6/(timebase-2)) + ' Hz')
-
-# PICOSCOPE ACQUISITION
 
 # Specify acquisition time
 ACQUISITION_TIME = 2 # s
@@ -458,6 +506,8 @@ assert_pico_ok(status["close"])
 print('Done.')
 print(status)
 
+### DATA MANAGEMENT ##
+
 # Save raw data to .csv file (with timestamp);
 # Save time domain plots to .png files;
 # Save frequency domain plots to .png files.
@@ -468,13 +518,13 @@ print('Generating .png plots...')
 timestamp = datetime.now().strftime("%Y%m%d_%I%M%S_%p")
 
 # ChA raw samples
-samplesFileNameChA = timestamp + "__" + VCOfreq + "__ChA.csv"
+samplesFileNameChA = timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChA.csv"
 completeFileNameChA = os.path.join('./data-acquired/raw-samples',samplesFileNameChA)
 with open(completeFileNameChA,'w') as file:
     writer = csv.writer(file)
     writer.writerows(zip(adc2mVChAMax,timeAxis))
 # ChA time plot - Full length
-timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChA_time-full.png")
+timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChA_time-full.png")
 plt.plot(timeAxis, adc2mVChAMax)
 plt.ylabel('ChA (mV)')
 plt.xlabel('Time (s)')
@@ -483,7 +533,7 @@ plt.savefig(timePlotNameChA)
 # plt.show()
 plt.close()
 # ChA time plot - Zoom
-timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChA_time-zoom.png")
+timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChA_time-zoom.png")
 plt.plot(timeAxis, adc2mVChAMax)
 plt.ylabel('Signal (mV)')
 plt.xlabel('Time (s)')
@@ -502,7 +552,7 @@ freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
 freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
 print('Channel A - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChA_FFT_dBV.argmax()]) + ' Hz')
 # ChA spectrum - Full
-freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChA_FFT-full.png")
+freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChA_FFT-full.png")
 plt.plot(freqAxis_Hz, ChA_FFT_dBV)
 plt.ylabel('ChA spectrum (dBV)')
 plt.xlabel('Frequency (Hz)')
@@ -511,7 +561,7 @@ plt.savefig(freqPlotNameChA)
 # plt.show()
 plt.close()
 # ChA spectrum - Zoom
-freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChA_FFT-zoom.png")
+freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChA_FFT-zoom.png")
 plt.plot(freqAxis_Hz, ChA_FFT_dBV)
 plt.ylabel('ChA spectrum (dBV)')
 plt.xlabel('Frequency (Hz)')
@@ -522,13 +572,13 @@ plt.savefig(freqPlotNameChA)
 plt.close()
 
 # ChB raw samples
-samplesFileNameChB = timestamp + "__" + VCOfreq + "__ChB.csv"
+samplesFileNameChB = timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChB.csv"
 completeFileNameChB = os.path.join('./data-acquired/raw-samples',samplesFileNameChB)
 with open(completeFileNameChB,'w') as file:
     writer = csv.writer(file)
     writer.writerows(zip(adc2mVChBMax,timeAxis))
 # ChB time plot - Full length
-timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChB_time-full.png")
+timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChB_time-full.png")
 plt.plot(timeAxis, adc2mVChBMax)
 plt.ylabel('ChB (mV)')
 plt.xlabel('Time (s)')
@@ -537,7 +587,7 @@ plt.savefig(timePlotNameChB)
 # plt.show()
 plt.close()
 # ChB time plot - Zoom
-timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChB_time-zoom.png")
+timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChB_time-zoom.png")
 plt.plot(timeAxis, adc2mVChBMax)
 plt.ylabel('ChB (mV)')
 plt.xlabel('Time (s)')
@@ -556,7 +606,7 @@ freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
 freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
 print('Channel B - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChB_FFT_dBV.argmax()]) + ' Hz')
 # ChB spectrum - Full
-freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChB_FFT-full.png")
+freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChB_FFT-full.png")
 plt.plot(freqAxis_Hz, ChB_FFT_dBV)
 plt.ylabel('ChB spectrum (dBV)')
 plt.xlabel('Frequency (Hz)')
@@ -565,7 +615,7 @@ plt.savefig(freqPlotNameChB)
 # plt.show()
 plt.close()
 # ChA spectrum - Zoom
-freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + VCOfreq + "__ChB_FFT-zoom.png")
+freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChB_FFT-zoom.png")
 plt.plot(freqAxis_Hz, ChB_FFT_dBV)
 plt.ylabel('ChB spectrum (dBV)')
 plt.xlabel('Frequency (Hz)')
