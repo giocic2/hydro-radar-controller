@@ -144,10 +144,17 @@ while (continueCalibration == True):
 	z_g_avg = 0
 	tiltAngle_1st_avg = 0
 	tiltAngle_2nd_avg = 0
+tiltAngle = str("{0:.0f}".format(np.rad2deg(tiltAngle_avg))) + "deg"
+
 # Accelerometer in sleep mode
 accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00000100)
 
-tiltAngle = str("{0:.0f}".format(np.rad2deg(tiltAngle_avg))) + "deg"
+PIVOT_HEIGHT = 0.7
+ANTENNA_CENTER_POSITION = 0.3
+ANTENNA_HEIGHT = PIVOT_HEIGHT + ANTENNA_CENTER_POSITION * np.cos(tiltAngle_avg)
+print("Distance from ground level: {0:.0f}".format(ANTENNA_HEIGHT / np.sin(tiltAngle_avg)))
+print("Distance from ground level @ground level: {0:.0f}".format(ANTENNA_HEIGHT / np.tan(tiltAngle_avg)))
+
 
 ### TRX and PLL ###
 
