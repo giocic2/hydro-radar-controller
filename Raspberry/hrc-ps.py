@@ -113,17 +113,17 @@ while (continueCalibration == True):
 		y_g_avg = y_g_avg + y_g/AVERAGES
 		z_g_avg = z_g_avg + z_g/AVERAGES
 		# Two formulas to evaluate the same tilt angle
-		tiltAngle_1st = np.arcsin(- y_g / y_cfs)
-		tiltAngle_2nd = np.arccos(+ z_g / z_cfs)
+		tiltAngle_1st = np.arcsin(- z_g / z_cfs)
+		tiltAngle_2nd = np.arccos(+ x_g / x_cfs)
 		tiltAngle_1st_avg = tiltAngle_1st_avg + tiltAngle_1st/AVERAGES
 		tiltAngle_2nd_avg = tiltAngle_2nd_avg + tiltAngle_2nd/AVERAGES
 	tiltAngle_avg = (tiltAngle_1st_avg + tiltAngle_2nd_avg) / 2
 # 	print("x y z [LSB]:", round(x_g_avg), round(y_g_avg), round(z_g_avg))
 # 	print("Tilt angle [deg] (two values that should be equal): {0:.2f} {1:.2f}".format(numpy.rad2deg(tiltAngle_1st_avg), numpy.rad2deg(tiltAngle_2nd_avg)))
 	print("Estimated tilt angle [deg]: {0:.0f}".format(np.rad2deg(tiltAngle_avg)))
-	if round(x_g_avg) != 0:
-		print("WARNING: gravity along X-axis should be 0! Please align the sensor horizontally.")
-		print("x: ", round(x_g_avg))
+	if round(y_g_avg) != 0:
+		print("WARNING: gravity along Y-axis should be 0! Please align the sensor horizontally.")
+		print("y: ", round(y_g_avg))
 	accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00000000)
 	accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00001000)
 	whatNext = input("Repeat calibration? [y/n]:    ")
