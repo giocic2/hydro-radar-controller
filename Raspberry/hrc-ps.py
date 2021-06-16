@@ -153,7 +153,7 @@ accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00000100)
 #    /
 #   /. RX antenna
 #  /    .
-# |        .
+# *pivot   .
 # |           .
 # |              . d (@ beam direction)
 # |                 .
@@ -162,13 +162,13 @@ accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00000100)
 # ____                       ._____ground level
 #    <----------------------->
 #                l
-PIVOT_HEIGHT = 0.7
-ANTENNA_CENTER_POSITION = 0.3
+PIVOT_HEIGHT = 0.56 # m. Vertical distance between pivot and ground level.
+ANTENNA_CENTER_POSITION = 0.23 # m. Distance between pivot and center of RX antenna.
 ANTENNA_HEIGHT = PIVOT_HEIGHT + ANTENNA_CENTER_POSITION * np.cos(tiltAngle_avg)
 # d
-print("Distance between RX antenna and ground level @ beam direction: {0:.0f}".format(ANTENNA_HEIGHT / np.sin(tiltAngle_avg)))
+print("Distance between RX antenna and ground level @ beam direction: {0:.0f} m".format(ANTENNA_HEIGHT / np.sin(tiltAngle_avg)))
 # l
-print("Projection of that distance on ground level: {0:.0f}".format(ANTENNA_HEIGHT / np.tan(tiltAngle_avg)))
+print("Projection of that distance on ground level: {0:.0f} m".format(ANTENNA_HEIGHT / np.tan(tiltAngle_avg)))
 
 
 ### TRX and PLL ###
