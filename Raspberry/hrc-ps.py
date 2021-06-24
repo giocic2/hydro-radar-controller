@@ -114,7 +114,7 @@ while (continueCalibration == True):
 		z_g_avg = z_g_avg + z_g/AVERAGES
 		# Two formulas to evaluate the same tilt angle
 		tiltAngle_1st = np.arcsin(- z_g / z_cfs)
-		tiltAngle_2nd = np.arccos(+ x_g / x_cfs)
+		tiltAngle_2nd = np.arccos(+ y_g / y_cfs)
 		tiltAngle_1st_avg = tiltAngle_1st_avg + tiltAngle_1st/AVERAGES
 		tiltAngle_2nd_avg = tiltAngle_2nd_avg + tiltAngle_2nd/AVERAGES
 	tiltAngle_avg = (tiltAngle_1st_avg + tiltAngle_2nd_avg) / 2
