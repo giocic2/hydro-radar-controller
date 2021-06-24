@@ -165,6 +165,7 @@ accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00000100)
 PIVOT_HEIGHT = 0.56 # m. Vertical distance between pivot and ground level.
 ANTENNA_CENTER_POSITION = 0.23 # m. Distance between pivot and center of RX antenna.
 ANTENNA_HEIGHT = PIVOT_HEIGHT + ANTENNA_CENTER_POSITION * np.cos(tiltAngle_avg)
+antennaHeight = str("{0:.2f}".format(ANTENNA_HEIGHT)) + "m"
 # ANTENNA_HEIGHT
 print("Vertical distance between RX antenna and ground level: {0:.2f} m".format(ANTENNA_HEIGHT))
 # d
@@ -544,13 +545,13 @@ print('Generating .png plots...')
 timestamp = datetime.now().strftime("%Y%m%d_%I%M%S_%p")
 
 # ChA raw samples
-samplesFileNameChA = timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChA.csv"
+samplesFileNameChA = timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChA.csv"
 completeFileNameChA = os.path.join('./data-acquired/raw-samples',samplesFileNameChA)
 with open(completeFileNameChA,'w') as file:
     writer = csv.writer(file)
     writer.writerows(zip(adc2mVChAMax,timeAxis))
 # ChA time plot - Full length
-timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChA_time-full.png")
+timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChA_time-full.png")
 plt.plot(timeAxis, adc2mVChAMax)
 plt.ylabel('ChA (mV)')
 plt.xlabel('Time (s)')
@@ -559,7 +560,7 @@ plt.savefig(timePlotNameChA)
 # plt.show()
 plt.close()
 # ChA time plot - Zoom
-timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChA_time-zoom.png")
+timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChA_time-zoom.png")
 plt.plot(timeAxis, adc2mVChAMax)
 plt.ylabel('Signal (mV)')
 plt.xlabel('Time (s)')
@@ -578,7 +579,7 @@ freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
 freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
 print('Channel A - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChA_FFT_dBV.argmax()]) + ' Hz')
 # ChA spectrum - Full
-freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChA_FFT-full.png")
+freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + antennaHeight + "__" + VCOfreq + "__ChA_FFT-full.png")
 plt.plot(freqAxis_Hz, ChA_FFT_dBV)
 plt.ylabel('ChA spectrum (dBV)')
 plt.xlabel('Frequency (Hz)')
@@ -587,7 +588,7 @@ plt.savefig(freqPlotNameChA)
 # plt.show()
 plt.close()
 # ChA spectrum - Zoom
-freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChA_FFT-zoom.png")
+freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChA_FFT-zoom.png")
 plt.plot(freqAxis_Hz, ChA_FFT_dBV)
 plt.ylabel('ChA spectrum (dBV)')
 plt.xlabel('Frequency (Hz)')
@@ -598,13 +599,13 @@ plt.savefig(freqPlotNameChA)
 plt.close()
 
 # ChB raw samples
-samplesFileNameChB = timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChB.csv"
+samplesFileNameChB = timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChB.csv"
 completeFileNameChB = os.path.join('./data-acquired/raw-samples',samplesFileNameChB)
 with open(completeFileNameChB,'w') as file:
     writer = csv.writer(file)
     writer.writerows(zip(adc2mVChBMax,timeAxis))
 # ChB time plot - Full length
-timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChB_time-full.png")
+timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChB_time-full.png")
 plt.plot(timeAxis, adc2mVChBMax)
 plt.ylabel('ChB (mV)')
 plt.xlabel('Time (s)')
@@ -613,7 +614,7 @@ plt.savefig(timePlotNameChB)
 # plt.show()
 plt.close()
 # ChB time plot - Zoom
-timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChB_time-zoom.png")
+timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChB_time-zoom.png")
 plt.plot(timeAxis, adc2mVChBMax)
 plt.ylabel('ChB (mV)')
 plt.xlabel('Time (s)')
@@ -632,7 +633,7 @@ freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
 freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
 print('Channel B - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChB_FFT_dBV.argmax()]) + ' Hz')
 # ChB spectrum - Full
-freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChB_FFT-full.png")
+freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChB_FFT-full.png")
 plt.plot(freqAxis_Hz, ChB_FFT_dBV)
 plt.ylabel('ChB spectrum (dBV)')
 plt.xlabel('Frequency (Hz)')
@@ -641,7 +642,7 @@ plt.savefig(freqPlotNameChB)
 # plt.show()
 plt.close()
 # ChA spectrum - Zoom
-freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + VCOfreq + "__ChB_FFT-zoom.png")
+freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChB_FFT-zoom.png")
 plt.plot(freqAxis_Hz, ChB_FFT_dBV)
 plt.ylabel('ChB spectrum (dBV)')
 plt.xlabel('Frequency (Hz)')
