@@ -122,8 +122,8 @@ while (continueCalibration == True):
 # 	print("Tilt angle [deg] (two values that should be equal): {0:.2f} {1:.2f}".format(numpy.rad2deg(tiltAngle_1st_avg), numpy.rad2deg(tiltAngle_2nd_avg)))
 	print("Estimated tilt angle [deg]: {0:.0f}".format(np.rad2deg(tiltAngle_avg)))
 	if round(x_g_avg) != 0:
-		print("WARNING: gravity along Y-axis should be 0! Please align the sensor horizontally.")
-		print("y: ", round(x_g_avg))
+		print("WARNING: gravity along X-axis should be 0! Please align the sensor horizontally.")
+		print("x: ", round(x_g_avg))
 	accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00000000)
 	accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00001000)
 	whatNext = input("Repeat calibration? [y/n]:    ")
