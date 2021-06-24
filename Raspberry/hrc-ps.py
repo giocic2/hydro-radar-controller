@@ -165,6 +165,8 @@ accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00000100)
 PIVOT_HEIGHT = 0.56 # m. Vertical distance between pivot and ground level.
 ANTENNA_CENTER_POSITION = 0.23 # m. Distance between pivot and center of RX antenna.
 ANTENNA_HEIGHT = PIVOT_HEIGHT + ANTENNA_CENTER_POSITION * np.cos(tiltAngle_avg)
+# ANTENNA_HEIGHT
+print("Vertical distance between RX antenna and ground level: {0:.2f} m".format(ANTENNA_HEIGHT))
 # d
 print("Distance between RX antenna and ground level @ beam direction: {0:.2f} m".format(ANTENNA_HEIGHT / np.sin(tiltAngle_avg)))
 # l
