@@ -167,7 +167,7 @@ ANTENNA_CENTER_POSITION = 0.23 # m. Distance between pivot and center of RX ante
 ANTENNA_HEIGHT = PIVOT_HEIGHT + ANTENNA_CENTER_POSITION * np.cos(tiltAngle_avg)
 antennaHeight = str("{0:.2f}".format(ANTENNA_HEIGHT)) + "m"
 maxScanAngle = np.deg2rad(15)
-maxSwath = ANTENNA_HEIGHT / np.tan(tiltAngle_avg) * np.tan(maxScanAngle)
+maxSwath = 2 * ANTENNA_HEIGHT / np.tan(tiltAngle_avg) * np.tan(maxScanAngle)
 # ANTENNA_HEIGHT
 print("Vertical distance between RX antenna and ground level: {0:.2f} m".format(ANTENNA_HEIGHT))
 # d
