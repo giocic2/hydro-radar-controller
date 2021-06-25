@@ -215,76 +215,6 @@ LSB = 0b00001000 # TX full power
 # bit0: TW power reduction bit0
 # TW output power reduction factors [dB] : 0, 0.4, 0.8, 1.4, 2.5, 4, 6, 9
 
-# Register values (obtained using ADIsimPLL and ADF4158 evaluation software)
-
-# Choose R0:
-print('Enter trasmitter frequency: (23500:50:24500 MHz)')
-VCOfreq = input()
-
-if VCOfreq == '23500':
-    R0, VCOfreq =        [0x00, 0x24, 0xB8, 0x00], '23500MHz'
-elif VCOfreq == '23550':
-    R0, VCOfreq =        [0x00, 0x24, 0xCC, 0x00], '23550MHz'
-elif VCOfreq == '23600':
-    R0, VCOfreq =        [0x00, 0x24, 0xE0, 0x00], '23600MHz'
-elif VCOfreq == '23650':
-    R0, VCOfreq =        [0x00, 0x24, 0xF4, 0x00], '23650MHz'
-elif VCOfreq == '23700':
-    R0, VCOfreq =        [0x00, 0x25, 0x08, 0x00], '23700MHz'
-elif VCOfreq == '23750':
-    R0, VCOfreq =        [0x00, 0x25, 0x1C, 0x00], '23750MHz'
-elif VCOfreq == '23800':
-    R0, VCOfreq =        [0x00, 0x25, 0x30, 0x00], '23800MHz'
-elif VCOfreq == '23850':
-    R0, VCOfreq =        [0x00, 0x25, 0x44, 0x00], '23850MHz'
-elif VCOfreq == '23900':
-    R0, VCOfreq =        [0x00, 0x25, 0x58, 0x00], '23900MHz'
-elif VCOfreq == '23950':
-    R0, VCOfreq =        [0x00, 0x25, 0x6C, 0x00], '23950MHz'
-elif VCOfreq == '24000':
-    R0, VCOfreq =        [0x00, 0x25, 0x80, 0x00], '24000MHz'
-elif VCOfreq == '24050':
-    R0, VCOfreq =        [0x00, 0x25, 0x94, 0x00], '24050MHz'
-elif VCOfreq == '24100':
-    R0, VCOfreq =        [0x00, 0x25, 0xA8, 0x00], '24100MHz'
-elif VCOfreq == '24150':
-    R0, VCOfreq =        [0x00, 0x25, 0xBC, 0x00], '24150MHz'
-elif VCOfreq == '24200':
-    R0, VCOfreq =        [0x00, 0x25, 0xD0, 0x00], '24200MHz'
-elif VCOfreq == '24250':
-    R0, VCOfreq =        [0x00, 0x25, 0xE4, 0x00], '24250MHz'
-elif VCOfreq == '24300':
-    R0, VCOfreq =        [0x00, 0x25, 0xF8, 0x00], '24300MHz'
-elif VCOfreq == '24350':
-    R0, VCOfreq =        [0x00, 0x26, 0x0C, 0x00], '24350MHz'
-elif VCOfreq == '24400':
-    R0, VCOfreq =        [0x00, 0x26, 0x20, 0x00], '24400MHz'
-elif VCOfreq == '24450':
-    R0, VCOfreq =        [0x00, 0x26, 0x34, 0x00], '24450MHz'
-elif VCOfreq == '24500':
-    R0, VCOfreq =        [0x00, 0x26, 0x48, 0x00], '24500MHz'
-else:
-    raise ValueError('Enter a valid tranmitter frequency value.')
-
-R1 =        [0x00, 0x00, 0x00, 0x01]
-R2 =        [0x02, 0x10, 0xFF, 0xFA]
-R3 =        [0x00, 0x00, 0x00, 0x43]
-R4 =        [0x00, 0x18, 0xC8, 0x04]
-R5_load1 =  [0x00, 0x4B, 0xFF, 0xFD]
-R5_load2 =  [0x00, 0x80, 0x00, 0x7D]
-R6_load1 =  [0x00, 0x00, 0x00, 0x56]
-R6_load2 =  [0x00, 0x80, 0x00, 0x06]
-R7 =        [0x00, 0x02, 0xFF, 0xFF]
-
-def transferRegister(register):
-    spi0.xfer(register)
-    # Load into the specific 32-bits latch:
-    time.sleep(1e-4)
-    loadEnable.on()
-    time.sleep(1e-4)
-    loadEnable.off()
-    time.sleep(1e-4)
-
 print('BGT24MTR11 programming started...')
 spi0 = spidev.SpiDev()
 # Use of /dev/spidev0.0, SPI0 with CE0 not used.
@@ -304,357 +234,430 @@ time.sleep(1e-4)
 chipSelectNeg.off()
 print('BGT24MTR11 programming ended.')
 
-# ADF4158 power-on
-chipEnable.on()
+# Register values (obtained using ADIsimPLL and ADF4158 evaluation software)
+# Choose R0:
+print('Enter how many scanning directions: (1, 3, 5, ..., 21)')
+scanningDirections = input()
+VCOfreq_step = 1000 / (scanningDirections - 1)
+VCOfreq = 23500
+VCOfreq_str = str(VCOfreq)
+while VCOfreq <= 24500:
+    if VCOfreq == 23500:
+        R0, VCOfreq_str =        [0x00, 0x24, 0xB8, 0x00], '23500MHz'
+    elif VCOfreq == 23550:
+        R0, VCOfreq_str =        [0x00, 0x24, 0xCC, 0x00], '23550MHz'
+    elif VCOfreq == 23600:
+        R0, VCOfreq_str =        [0x00, 0x24, 0xE0, 0x00], '23600MHz'
+    elif VCOfreq == 23650:
+        R0, VCOfreq_str =        [0x00, 0x24, 0xF4, 0x00], '23650MHz'
+    elif VCOfreq == 23700:
+        R0, VCOfreq_str =        [0x00, 0x25, 0x08, 0x00], '23700MHz'
+    elif VCOfreq == 23750:
+        R0, VCOfreq_str =        [0x00, 0x25, 0x1C, 0x00], '23750MHz'
+    elif VCOfreq == 23800:
+        R0, VCOfreq_str =        [0x00, 0x25, 0x30, 0x00], '23800MHz'
+    elif VCOfreq == 23850:
+        R0, VCOfreq_str =        [0x00, 0x25, 0x44, 0x00], '23850MHz'
+    elif VCOfreq == 23900:
+        R0, VCOfreq_str =        [0x00, 0x25, 0x58, 0x00], '23900MHz'
+    elif VCOfreq == 23950:
+        R0, VCOfreq_str =        [0x00, 0x25, 0x6C, 0x00], '23950MHz'
+    elif VCOfreq == 24000:
+        R0, VCOfreq_str =        [0x00, 0x25, 0x80, 0x00], '24000MHz'
+    elif VCOfreq == 24050:
+        R0, VCOfreq_str =        [0x00, 0x25, 0x94, 0x00], '24050MHz'
+    elif VCOfreq == 24100:
+        R0, VCOfreq_str =        [0x00, 0x25, 0xA8, 0x00], '24100MHz'
+    elif VCOfreq == 24150:
+        R0, VCOfreq_str =        [0x00, 0x25, 0xBC, 0x00], '24150MHz'
+    elif VCOfreq == 24200:
+        R0, VCOfreq_str =        [0x00, 0x25, 0xD0, 0x00], '24200MHz'
+    elif VCOfreq == 24250:
+        R0, VCOfreq_str =        [0x00, 0x25, 0xE4, 0x00], '24250MHz'
+    elif VCOfreq == 24300:
+        R0, VCOfreq_str =        [0x00, 0x25, 0xF8, 0x00], '24300MHz'
+    elif VCOfreq == 24350:
+        R0, VCOfreq_str =        [0x00, 0x26, 0x0C, 0x00], '24350MHz'
+    elif VCOfreq == 24400:
+        R0, VCOfreq_str =        [0x00, 0x26, 0x20, 0x00], '24400MHz'
+    elif VCOfreq == 24450:
+        R0, VCOfreq_str =        [0x00, 0x26, 0x34, 0x00], '24450MHz'
+    elif VCOfreq == 24500:
+        R0, VCOfreq_str =        [0x00, 0x26, 0x48, 0x00], '24500MHz'
+    else:
+        raise ValueError('Transmitter frequency value not valid.')
+    
+    VCOfreq += VCOfreq_step # Update VCOfreq value for the next loop cycle.
 
-# ADF4158 programming
-print('ADF4158 programming started...')
-spi0.open(0,0)
-spi0.max_speed_hz = 122000
-# CPOL=0, CPHA=1
-spi0.mode = 0b00
-time.sleep(1e-4)
+    R1 =        [0x00, 0x00, 0x00, 0x01]
+    R2 =        [0x02, 0x10, 0xFF, 0xFA]
+    R3 =        [0x00, 0x00, 0x00, 0x43]
+    R4 =        [0x00, 0x18, 0xC8, 0x04]
+    R5_load1 =  [0x00, 0x4B, 0xFF, 0xFD]
+    R5_load2 =  [0x00, 0x80, 0x00, 0x7D]
+    R6_load1 =  [0x00, 0x00, 0x00, 0x56]
+    R6_load2 =  [0x00, 0x80, 0x00, 0x06]
+    R7 =        [0x00, 0x02, 0xFF, 0xFF]
 
-transferRegister(R7)
-transferRegister(R6_load1)
-transferRegister(R6_load2)
-transferRegister(R5_load1)
-transferRegister(R5_load2)
-transferRegister(R4)
-transferRegister(R3)
-transferRegister(R2)
-transferRegister(R1)
-transferRegister(R0) # last one to be loaded (double-buffered)
+    def transferRegister(register):
+        spi0.xfer(register)
+        # Load into the specific 32-bits latch:
+        time.sleep(1e-4)
+        loadEnable.on()
+        time.sleep(1e-4)
+        loadEnable.off()
+        time.sleep(1e-4)
 
-spi0.close()
-time.sleep(1e-4)
-print('ADF4158 programming ended.')
+    # ADF4158 power-on
+    chipEnable.on()
 
-### PICOSCOPE ###
+    # ADF4158 programming
+    print('ADF4158 programming started...')
+    spi0.open(0,0)
+    spi0.max_speed_hz = 122000
+    # CPOL=0, CPHA=1
+    spi0.mode = 0b00
+    time.sleep(1e-4)
 
-# Specify sampling frequency
-SAMPLING_FREQUENCY = 100e3 # Hz
-if SAMPLING_FREQUENCY >= 125e6:
-    timebase = round(log(500e6/SAMPLING_FREQUENCY,2))
-    print('Sampling frequency: {:,}'.format(1/(2**timebase/5)*1e8) + ' Hz')
-else:
-    timebase=round(62.5e6/SAMPLING_FREQUENCY+2)
-    print('Sampling frequency: {:,}'.format(62.5e6/(timebase-2)) + ' Hz')
+    transferRegister(R7)
+    transferRegister(R6_load1)
+    transferRegister(R6_load2)
+    transferRegister(R5_load1)
+    transferRegister(R5_load2)
+    transferRegister(R4)
+    transferRegister(R3)
+    transferRegister(R2)
+    transferRegister(R1)
+    transferRegister(R0) # last one to be loaded (double-buffered)
 
-# Specify acquisition time
-ACQUISITION_TIME = 2 # s
-samplingInterval = 1/SAMPLING_FREQUENCY
-totalSamples = round(ACQUISITION_TIME/samplingInterval)
-print('Number of total samples (for each channel): {:,}'.format(totalSamples))
-# Buffer memory size: 32 M
+    spi0.close()
+    time.sleep(1e-4)
+    print('ADF4158 programming ended.')
 
-FFT_FREQ_BINS = 2**18
-print('Number of frequency bins for FFT computation: {:,}'.format(FFT_FREQ_BINS))
+    ### PICOSCOPE ###
 
-# Create chandle and status ready for use.
-# The c_int16 constructor accepts an optional integer initializer. Default: 0.
-chandle = ctypes.c_int16()
-status = {}
+    # Specify sampling frequency
+    SAMPLING_FREQUENCY = 100e3 # Hz
+    if SAMPLING_FREQUENCY >= 125e6:
+        timebase = round(log(500e6/SAMPLING_FREQUENCY,2))
+        print('Sampling frequency: {:,}'.format(1/(2**timebase/5)*1e8) + ' Hz')
+    else:
+        timebase=round(62.5e6/SAMPLING_FREQUENCY+2)
+        print('Sampling frequency: {:,}'.format(62.5e6/(timebase-2)) + ' Hz')
 
-# Open 2000 series PicoScope
-print('Setting up PiscoScope 2206B unit...')
-# Returns handle to chandle for use in future API functions
-# First argument: number that uniquely identifies the scope (address of chandle)
-# Second argument:  first scope found (None)
-status["openunit"] = ps.ps2000aOpenUnit(ctypes.byref(chandle), None)
-# If any error, the following line will raise one.
-assert_pico_ok(status["openunit"])
+    # Specify acquisition time
+    ACQUISITION_TIME = 2 # s
+    samplingInterval = 1/SAMPLING_FREQUENCY
+    totalSamples = round(ACQUISITION_TIME/samplingInterval)
+    print('Number of total samples (for each channel): {:,}'.format(totalSamples))
+    # Buffer memory size: 32 M
 
-# Set up channel A
-# handle = chandle
-# channel = PS2000A_CHANNEL_A = 0
-# enabled = 1
-# coupling type = PS2000A_DC = 1
-# range = PS2000A_2V = 7
-# analogue offset = -2 V = -2
-chARange = 5
-status["setChA"] = ps.ps2000aSetChannel(chandle, 0, 1, 0, chARange, 0)
-assert_pico_ok(status["setChA"])
-# Set up channel B
-# handle = chandle
-# channel = PS2000A_CHANNEL_B = 1
-# enabled = 1
-# coupling type = PS2000A_DC = 1
-# range = PS2000A_2V = 7
-# analogue offset = 0 V
-chBRange = 5
-status["setChB"] = ps.ps2000aSetChannel(chandle, 1, 1, 0, chBRange, 0)
-assert_pico_ok(status["setChB"])
+    FFT_FREQ_BINS = 2**18
+    print('Number of frequency bins for FFT computation: {:,}'.format(FFT_FREQ_BINS))
 
-# Set up single trigger
-# handle = chandle
-# enabled = 1
-# source = PS2000A_CHANNEL_A = 0
-# threshold = 1024 ADC counts
-# direction = PS2000A_RISING = 2
-# delay = 0 sample periods
-# auto Trigger = 1000 ms (if no trigger events occurs)
-status["trigger"] = ps.ps2000aSetSimpleTrigger(chandle, 1, 0, 0, 2, 1000000, 5000)
-assert_pico_ok(status["trigger"])
-# Set number of pre and post trigger samples to be collected
-preTriggerSamples = round(totalSamples/2)
-postTriggerSamples = totalSamples-preTriggerSamples
-# Get timebase information
-# handle = chandle
-# timebase: obtained by samplingFrequency (sample interval formula: (timebase-2)*16 ns [for timebase>=3])
-# noSamples = totalSamples
-# pointer to timeIntervalNanoseconds = ctypes.byref(timeIntervalNs)
-# oersample: not used, just initialized
-# pointer to totalSamples = ctypes.byref(returnedMaxSamples)
-# segment index = 0 (index of the memory segment to use, only 1 segment by default)
-timeIntervalns = ctypes.c_float()
-returnedMaxSamples = ctypes.c_int32()
-oversample = ctypes.c_int16(0)
-status["getTimebase2"] = ps.ps2000aGetTimebase2(chandle,
-                                                timebase,
-                                                totalSamples,
-                                                ctypes.byref(timeIntervalns),
-                                                oversample,
-                                                ctypes.byref(returnedMaxSamples),
-                                                0)
-assert_pico_ok(status["getTimebase2"])
-time.sleep(1) # Wait transient after switch to AC coupling.
-print('Done.')
+    # Create chandle and status ready for use.
+    # The c_int16 constructor accepts an optional integer initializer. Default: 0.
+    chandle = ctypes.c_int16()
+    status = {}
 
-# Block sampling mode
-# The scope stores data in internal buffer memory and then transfer it to the PC via USB.
-# The data is lost when a new run is started in the same segment.
-# For PicoScope 2206B the buffer memory is 32 MS, maximum sampling rate 500 MS/s.
-print('Running block capture...')
-# Run block capture
-# handle = chandle
-# number of pre-trigger samples = preTriggerSamples
-# number of post-trigger samples = PostTriggerSamples
-# timebase (already defined when using ps2000aGetTimebase2)
-# oversample: not used
-# time indisposed ms = None (not needed, it's the time the scope will spend collecting samples)
-# segment index = 0 (the only one defined by default, this index is zero-based)
-# lpReady = None (using ps2000aIsReady rather than ps2000aBlockReady; callback functions that the driver will call when the data has been collected).
-# pParameter = None (void pointer passed to ps2000aBlockReady() to return arbitrary data to the application)
-status["runBlock"] = ps.ps2000aRunBlock(chandle,
-                                        preTriggerSamples,
-                                        postTriggerSamples,
-                                        timebase,
-                                        oversample,
-                                        None,
-                                        0,
-                                        None,
-                                        None)
-assert_pico_ok(status["runBlock"])
+    # Open 2000 series PicoScope
+    print('Setting up PiscoScope 2206B unit...')
+    # Returns handle to chandle for use in future API functions
+    # First argument: number that uniquely identifies the scope (address of chandle)
+    # Second argument:  first scope found (None)
+    status["openunit"] = ps.ps2000aOpenUnit(ctypes.byref(chandle), None)
+    # If any error, the following line will raise one.
+    assert_pico_ok(status["openunit"])
 
-# Check for data collection to finish using ps2000aIsReady
-ready = ctypes.c_int16(0)
-check = ctypes.c_int16(0)
-while ready.value == check.value:
-    status["isReady"] = ps.ps2000aIsReady(chandle, ctypes.byref(ready))
+    # Set up channel A
+    # handle = chandle
+    # channel = PS2000A_CHANNEL_A = 0
+    # enabled = 1
+    # coupling type = PS2000A_DC = 1
+    # range = PS2000A_2V = 7
+    # analogue offset = -2 V = -2
+    chARange = 5
+    status["setChA"] = ps.ps2000aSetChannel(chandle, 0, 1, 0, chARange, 0)
+    assert_pico_ok(status["setChA"])
+    # Set up channel B
+    # handle = chandle
+    # channel = PS2000A_CHANNEL_B = 1
+    # enabled = 1
+    # coupling type = PS2000A_DC = 1
+    # range = PS2000A_2V = 7
+    # analogue offset = 0 V
+    chBRange = 5
+    status["setChB"] = ps.ps2000aSetChannel(chandle, 1, 1, 0, chBRange, 0)
+    assert_pico_ok(status["setChB"])
 
-# Create buffers ready for assigning pointers for data collection
-bufferAMax = (ctypes.c_int16 * totalSamples)()
-bufferAMin = (ctypes.c_int16 * totalSamples)() # used for downsampling which isn't in the scope of this example
-bufferBMax = (ctypes.c_int16 * totalSamples)()
-bufferBMin = (ctypes.c_int16 * totalSamples)() # used for downsampling which isn't in the scope of this example
+    # Set up single trigger
+    # handle = chandle
+    # enabled = 1
+    # source = PS2000A_CHANNEL_A = 0
+    # threshold = 1024 ADC counts
+    # direction = PS2000A_RISING = 2
+    # delay = 0 sample periods
+    # auto Trigger = 1000 ms (if no trigger events occurs)
+    status["trigger"] = ps.ps2000aSetSimpleTrigger(chandle, 1, 0, 0, 2, 1000000, 5000)
+    assert_pico_ok(status["trigger"])
+    # Set number of pre and post trigger samples to be collected
+    preTriggerSamples = round(totalSamples/2)
+    postTriggerSamples = totalSamples-preTriggerSamples
+    # Get timebase information
+    # handle = chandle
+    # timebase: obtained by samplingFrequency (sample interval formula: (timebase-2)*16 ns [for timebase>=3])
+    # noSamples = totalSamples
+    # pointer to timeIntervalNanoseconds = ctypes.byref(timeIntervalNs)
+    # oersample: not used, just initialized
+    # pointer to totalSamples = ctypes.byref(returnedMaxSamples)
+    # segment index = 0 (index of the memory segment to use, only 1 segment by default)
+    timeIntervalns = ctypes.c_float()
+    returnedMaxSamples = ctypes.c_int32()
+    oversample = ctypes.c_int16(0)
+    status["getTimebase2"] = ps.ps2000aGetTimebase2(chandle,
+                                                    timebase,
+                                                    totalSamples,
+                                                    ctypes.byref(timeIntervalns),
+                                                    oversample,
+                                                    ctypes.byref(returnedMaxSamples),
+                                                    0)
+    assert_pico_ok(status["getTimebase2"])
+    time.sleep(1) # Wait transient after switch to AC coupling.
+    print('Done.')
 
-# Set data buffer location for data collection from channel A
-# handle = chandle
-# source = PS2000A_CHANNEL_A = 0
-# pointer to buffer max = ctypes.byref(bufferDPort0Max)
-# pointer to buffer min = ctypes.byref(bufferDPort0Min)
-# buffer length = totalSamples
-# segment index = 0
-# ratio mode = PS2000A_RATIO_MODE_NONE = 0
-status["setDataBuffersA"] = ps.ps2000aSetDataBuffers(chandle,
-                                                     0,
-                                                     ctypes.byref(bufferAMax),
-                                                     ctypes.byref(bufferAMin),
-                                                     totalSamples,
-                                                     0,
-                                                     0)
-assert_pico_ok(status["setDataBuffersA"])
+    # Block sampling mode
+    # The scope stores data in internal buffer memory and then transfer it to the PC via USB.
+    # The data is lost when a new run is started in the same segment.
+    # For PicoScope 2206B the buffer memory is 32 MS, maximum sampling rate 500 MS/s.
+    print('Running block capture...')
+    # Run block capture
+    # handle = chandle
+    # number of pre-trigger samples = preTriggerSamples
+    # number of post-trigger samples = PostTriggerSamples
+    # timebase (already defined when using ps2000aGetTimebase2)
+    # oversample: not used
+    # time indisposed ms = None (not needed, it's the time the scope will spend collecting samples)
+    # segment index = 0 (the only one defined by default, this index is zero-based)
+    # lpReady = None (using ps2000aIsReady rather than ps2000aBlockReady; callback functions that the driver will call when the data has been collected).
+    # pParameter = None (void pointer passed to ps2000aBlockReady() to return arbitrary data to the application)
+    status["runBlock"] = ps.ps2000aRunBlock(chandle,
+                                            preTriggerSamples,
+                                            postTriggerSamples,
+                                            timebase,
+                                            oversample,
+                                            None,
+                                            0,
+                                            None,
+                                            None)
+    assert_pico_ok(status["runBlock"])
 
-# Set data buffer location for data collection from channel B
-# handle = chandle
-# source = PS2000A_CHANNEL_B = 1
-# pointer to buffer max = ctypes.byref(bufferBMax)
-# pointer to buffer min = ctypes.byref(bufferBMin)
-# buffer length = totalSamples
-# segment index = 0
-# ratio mode = PS2000A_RATIO_MODE_NONE = 0
-status["setDataBuffersB"] = ps.ps2000aSetDataBuffers(chandle,
-                                                     1,
-                                                     ctypes.byref(bufferBMax),
-                                                     ctypes.byref(bufferBMin),
-                                                     totalSamples,
-                                                     0,
-                                                     0)
-assert_pico_ok(status["setDataBuffersB"])
+    # Check for data collection to finish using ps2000aIsReady
+    ready = ctypes.c_int16(0)
+    check = ctypes.c_int16(0)
+    while ready.value == check.value:
+        status["isReady"] = ps.ps2000aIsReady(chandle, ctypes.byref(ready))
 
-# Create overflow location
-overflow = ctypes.c_int16()
-# Create converted type totalSamples
-cTotalSamples = ctypes.c_int32(totalSamples)
+    # Create buffers ready for assigning pointers for data collection
+    bufferAMax = (ctypes.c_int16 * totalSamples)()
+    bufferAMin = (ctypes.c_int16 * totalSamples)() # used for downsampling which isn't in the scope of this example
+    bufferBMax = (ctypes.c_int16 * totalSamples)()
+    bufferBMin = (ctypes.c_int16 * totalSamples)() # used for downsampling which isn't in the scope of this example
 
-# Retrived data from scope to buffers assigned above
-# handle = chandle
-# start index = 0 (zero-based index, sample intervals from the start of the buffer)
-# pointer to number of samples = ctypes.byref(cTotalSamples)
-# downsample ratio = 0
-# downsample ratio mode = PS2000A_RATIO_MODE_NONE (downsampling disabled)
-# pointer to overflow = ctypes.byref(overflow))
-status["getValues"] = ps.ps2000aGetValues(chandle, 0, ctypes.byref(cTotalSamples), 0, 0, 0, ctypes.byref(overflow))
-assert_pico_ok(status["getValues"])
+    # Set data buffer location for data collection from channel A
+    # handle = chandle
+    # source = PS2000A_CHANNEL_A = 0
+    # pointer to buffer max = ctypes.byref(bufferDPort0Max)
+    # pointer to buffer min = ctypes.byref(bufferDPort0Min)
+    # buffer length = totalSamples
+    # segment index = 0
+    # ratio mode = PS2000A_RATIO_MODE_NONE = 0
+    status["setDataBuffersA"] = ps.ps2000aSetDataBuffers(chandle,
+                                                        0,
+                                                        ctypes.byref(bufferAMax),
+                                                        ctypes.byref(bufferAMin),
+                                                        totalSamples,
+                                                        0,
+                                                        0)
+    assert_pico_ok(status["setDataBuffersA"])
+
+    # Set data buffer location for data collection from channel B
+    # handle = chandle
+    # source = PS2000A_CHANNEL_B = 1
+    # pointer to buffer max = ctypes.byref(bufferBMax)
+    # pointer to buffer min = ctypes.byref(bufferBMin)
+    # buffer length = totalSamples
+    # segment index = 0
+    # ratio mode = PS2000A_RATIO_MODE_NONE = 0
+    status["setDataBuffersB"] = ps.ps2000aSetDataBuffers(chandle,
+                                                        1,
+                                                        ctypes.byref(bufferBMax),
+                                                        ctypes.byref(bufferBMin),
+                                                        totalSamples,
+                                                        0,
+                                                        0)
+    assert_pico_ok(status["setDataBuffersB"])
+
+    # Create overflow location
+    overflow = ctypes.c_int16()
+    # Create converted type totalSamples
+    cTotalSamples = ctypes.c_int32(totalSamples)
+
+    # Retrived data from scope to buffers assigned above
+    # handle = chandle
+    # start index = 0 (zero-based index, sample intervals from the start of the buffer)
+    # pointer to number of samples = ctypes.byref(cTotalSamples)
+    # downsample ratio = 0
+    # downsample ratio mode = PS2000A_RATIO_MODE_NONE (downsampling disabled)
+    # pointer to overflow = ctypes.byref(overflow))
+    status["getValues"] = ps.ps2000aGetValues(chandle, 0, ctypes.byref(cTotalSamples), 0, 0, 0, ctypes.byref(overflow))
+    assert_pico_ok(status["getValues"])
 
 
-# find maximum ADC count value
-# handle = chandle
-# pointer to value = ctypes.byref(maxADC)
-maxADC = ctypes.c_int16()
-status["maximumValue"] = ps.ps2000aMaximumValue(chandle, ctypes.byref(maxADC))
-assert_pico_ok(status["maximumValue"])
+    # find maximum ADC count value
+    # handle = chandle
+    # pointer to value = ctypes.byref(maxADC)
+    maxADC = ctypes.c_int16()
+    status["maximumValue"] = ps.ps2000aMaximumValue(chandle, ctypes.byref(maxADC))
+    assert_pico_ok(status["maximumValue"])
 
-# convert ADC counts data to mV
-adc2mVChAMax =  adc2mV(bufferAMax, chARange, maxADC)
-adc2mVChBMax =  adc2mV(bufferBMax, chBRange, maxADC)
+    # convert ADC counts data to mV
+    adc2mVChAMax =  adc2mV(bufferAMax, chARange, maxADC)
+    adc2mVChBMax =  adc2mV(bufferBMax, chBRange, maxADC)
 
-# Create time data
-timeAxis = 1e-9*(np.linspace(0, (cTotalSamples.value) * (timeIntervalns.value-1), cTotalSamples.value))
-print('Done.')
+    # Create time data
+    timeAxis = 1e-9*(np.linspace(0, (cTotalSamples.value) * (timeIntervalns.value-1), cTotalSamples.value))
+    print('Done.')
 
-# Stop the scope
-print('Closing the scope...')
-# handle = chandle
-status["stop"] = ps.ps2000aStop(chandle)
-assert_pico_ok(status["stop"])
-# Close unitDisconnect the scope
-# handle = chandle
-status["close"] = ps.ps2000aCloseUnit(chandle)
-assert_pico_ok(status["close"])
-print('Done.')
-print(status)
+    # Stop the scope
+    print('Closing the scope...')
+    # handle = chandle
+    status["stop"] = ps.ps2000aStop(chandle)
+    assert_pico_ok(status["stop"])
+    # Close unitDisconnect the scope
+    # handle = chandle
+    status["close"] = ps.ps2000aCloseUnit(chandle)
+    assert_pico_ok(status["close"])
+    print('Done.')
+    print(status)
 
-### DATA MANAGEMENT ##
+    ### DATA MANAGEMENT ##
 
-# Save raw data to .csv file (with timestamp);
-# Save time domain plots to .png files;
-# Save frequency domain plots to .png files.
-startTime = time.time()
-print('Saving raw samples to .csv file...')
-print('Computing FFT...')
-print('Generating .png plots...')
-timestamp = datetime.now().strftime("%Y%m%d_%I%M%S_%p")
+    # Save raw data to .csv file (with timestamp);
+    # Save time domain plots to .png files;
+    # Save frequency domain plots to .png files.
+    startTime = time.time()
+    print('Saving raw samples to .csv file...')
+    print('Computing FFT...')
+    print('Generating .png plots...')
+    timestamp = datetime.now().strftime("%Y%m%d_%I%M%S_%p")
 
-# ChA raw samples
-samplesFileNameChA = timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChA.csv"
-completeFileNameChA = os.path.join('./data-acquired/raw-samples',samplesFileNameChA)
-with open(completeFileNameChA,'w') as file:
-    writer = csv.writer(file)
-    writer.writerows(zip(adc2mVChAMax,timeAxis))
-# ChA time plot - Full length
-timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChA_time-full.png")
-plt.plot(timeAxis, adc2mVChAMax)
-plt.ylabel('ChA (mV)')
-plt.xlabel('Time (s)')
-plt.grid(True)
-plt.savefig(timePlotNameChA)
-# plt.show()
-plt.close()
-# ChA time plot - Zoom
-timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChA_time-zoom.png")
-plt.plot(timeAxis, adc2mVChAMax)
-plt.ylabel('Signal (mV)')
-plt.xlabel('Time (s)')
-plt.grid(True)
-plt.axis([0, 5e-3, -500, 500])
-plt.savefig(timePlotNameChA)
-# plt.show()
-plt.close()
-# FFT ChA
-ChA_FFT = np.fft.rfft(adc2mVChAMax, n = FFT_FREQ_BINS) # FFT of real signal
-ChA_FFT_mV = np.abs(2/(totalSamples)*ChA_FFT) # FFT magnitude
-ChA_FFT_dBV = 20*np.log10(ChA_FFT_mV/1000)
-# ChA_PSD = numpy.abs(ChA_FFT)**2
-# ChA_PSD_dBm = 10*numpy.log10(ChA_PSD/1e-3)
-freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
-freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
-print('Channel A - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChA_FFT_dBV.argmax()]) + ' Hz')
-# ChA spectrum - Full
-freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + antennaHeight + "__" + VCOfreq + "__ChA_FFT-full.png")
-plt.plot(freqAxis_Hz, ChA_FFT_dBV)
-plt.ylabel('ChA spectrum (dBV)')
-plt.xlabel('Frequency (Hz)')
-plt.grid(True)
-plt.savefig(freqPlotNameChA)
-# plt.show()
-plt.close()
-# ChA spectrum - Zoom
-freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChA_FFT-zoom.png")
-plt.plot(freqAxis_Hz, ChA_FFT_dBV)
-plt.ylabel('ChA spectrum (dBV)')
-plt.xlabel('Frequency (Hz)')
-plt.grid(True)
-plt.axis([0, 10e3, -100, 0])
-plt.savefig(freqPlotNameChA)
-# plt.show()
-plt.close()
+    # ChA raw samples
+    samplesFileNameChA = timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA.csv"
+    completeFileNameChA = os.path.join('./data-acquired/raw-samples',samplesFileNameChA)
+    with open(completeFileNameChA,'w') as file:
+        writer = csv.writer(file)
+        writer.writerows(zip(adc2mVChAMax,timeAxis))
+    # ChA time plot - Full length
+    timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_time-full.png")
+    plt.plot(timeAxis, adc2mVChAMax)
+    plt.ylabel('ChA (mV)')
+    plt.xlabel('Time (s)')
+    plt.grid(True)
+    plt.savefig(timePlotNameChA)
+    # plt.show()
+    plt.close()
+    # ChA time plot - Zoom
+    timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_time-zoom.png")
+    plt.plot(timeAxis, adc2mVChAMax)
+    plt.ylabel('Signal (mV)')
+    plt.xlabel('Time (s)')
+    plt.grid(True)
+    plt.axis([0, 5e-3, -500, 500])
+    plt.savefig(timePlotNameChA)
+    # plt.show()
+    plt.close()
+    # FFT ChA
+    ChA_FFT = np.fft.rfft(adc2mVChAMax, n = FFT_FREQ_BINS) # FFT of real signal
+    ChA_FFT_mV = np.abs(2/(totalSamples)*ChA_FFT) # FFT magnitude
+    ChA_FFT_dBV = 20*np.log10(ChA_FFT_mV/1000)
+    # ChA_PSD = numpy.abs(ChA_FFT)**2
+    # ChA_PSD_dBm = 10*numpy.log10(ChA_PSD/1e-3)
+    freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
+    freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
+    print('Channel A - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChA_FFT_dBV.argmax()]) + ' Hz')
+    # ChA spectrum - Full
+    freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_FFT-full.png")
+    plt.plot(freqAxis_Hz, ChA_FFT_dBV)
+    plt.ylabel('ChA spectrum (dBV)')
+    plt.xlabel('Frequency (Hz)')
+    plt.grid(True)
+    plt.savefig(freqPlotNameChA)
+    # plt.show()
+    plt.close()
+    # ChA spectrum - Zoom
+    freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_FFT-zoom.png")
+    plt.plot(freqAxis_Hz, ChA_FFT_dBV)
+    plt.ylabel('ChA spectrum (dBV)')
+    plt.xlabel('Frequency (Hz)')
+    plt.grid(True)
+    plt.axis([0, 10e3, -100, 0])
+    plt.savefig(freqPlotNameChA)
+    # plt.show()
+    plt.close()
 
-# ChB raw samples
-samplesFileNameChB = timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChB.csv"
-completeFileNameChB = os.path.join('./data-acquired/raw-samples',samplesFileNameChB)
-with open(completeFileNameChB,'w') as file:
-    writer = csv.writer(file)
-    writer.writerows(zip(adc2mVChBMax,timeAxis))
-# ChB time plot - Full length
-timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChB_time-full.png")
-plt.plot(timeAxis, adc2mVChBMax)
-plt.ylabel('ChB (mV)')
-plt.xlabel('Time (s)')
-plt.grid(True)
-plt.savefig(timePlotNameChB)
-# plt.show()
-plt.close()
-# ChB time plot - Zoom
-timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChB_time-zoom.png")
-plt.plot(timeAxis, adc2mVChBMax)
-plt.ylabel('ChB (mV)')
-plt.xlabel('Time (s)')
-plt.grid(True)
-plt.axis([0, 5e-3, -500, 500])
-plt.savefig(timePlotNameChB)
-# plt.show()
-plt.close()
-# FFT ChB
-ChB_FFT = np.fft.rfft(adc2mVChBMax, n = FFT_FREQ_BINS) # FFT of real signal
-ChB_FFT_mV = np.abs(2/(totalSamples)*ChB_FFT) # FFT magnitude
-ChB_FFT_dBV = 20*np.log10(ChB_FFT_mV/1000)
-# ChB_PSD = numpy.abs(ChB_FFT)**2
-# ChB_PSD_dBm = 10*numpy.log10(ChB_PSD/1e-3)
-freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
-freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
-print('Channel B - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChB_FFT_dBV.argmax()]) + ' Hz')
-# ChB spectrum - Full
-freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChB_FFT-full.png")
-plt.plot(freqAxis_Hz, ChB_FFT_dBV)
-plt.ylabel('ChB spectrum (dBV)')
-plt.xlabel('Frequency (Hz)')
-plt.grid(True)
-plt.savefig(freqPlotNameChB)
-# plt.show()
-plt.close()
-# ChA spectrum - Zoom
-freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq + "__ChB_FFT-zoom.png")
-plt.plot(freqAxis_Hz, ChB_FFT_dBV)
-plt.ylabel('ChB spectrum (dBV)')
-plt.xlabel('Frequency (Hz)')
-plt.grid(True)
-plt.axis([0, 10e3, -100, 0])
-plt.savefig(freqPlotNameChB)
-# plt.show()
-plt.close()
+    # ChB raw samples
+    samplesFileNameChB = timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB.csv"
+    completeFileNameChB = os.path.join('./data-acquired/raw-samples',samplesFileNameChB)
+    with open(completeFileNameChB,'w') as file:
+        writer = csv.writer(file)
+        writer.writerows(zip(adc2mVChBMax,timeAxis))
+    # ChB time plot - Full length
+    timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_time-full.png")
+    plt.plot(timeAxis, adc2mVChBMax)
+    plt.ylabel('ChB (mV)')
+    plt.xlabel('Time (s)')
+    plt.grid(True)
+    plt.savefig(timePlotNameChB)
+    # plt.show()
+    plt.close()
+    # ChB time plot - Zoom
+    timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_time-zoom.png")
+    plt.plot(timeAxis, adc2mVChBMax)
+    plt.ylabel('ChB (mV)')
+    plt.xlabel('Time (s)')
+    plt.grid(True)
+    plt.axis([0, 5e-3, -500, 500])
+    plt.savefig(timePlotNameChB)
+    # plt.show()
+    plt.close()
+    # FFT ChB
+    ChB_FFT = np.fft.rfft(adc2mVChBMax, n = FFT_FREQ_BINS) # FFT of real signal
+    ChB_FFT_mV = np.abs(2/(totalSamples)*ChB_FFT) # FFT magnitude
+    ChB_FFT_dBV = 20*np.log10(ChB_FFT_mV/1000)
+    # ChB_PSD = numpy.abs(ChB_FFT)**2
+    # ChB_PSD_dBm = 10*numpy.log10(ChB_PSD/1e-3)
+    freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
+    freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
+    print('Channel B - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChB_FFT_dBV.argmax()]) + ' Hz')
+    # ChB spectrum - Full
+    freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_FFT-full.png")
+    plt.plot(freqAxis_Hz, ChB_FFT_dBV)
+    plt.ylabel('ChB spectrum (dBV)')
+    plt.xlabel('Frequency (Hz)')
+    plt.grid(True)
+    plt.savefig(freqPlotNameChB)
+    # plt.show()
+    plt.close()
+    # ChA spectrum - Zoom
+    freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_FFT-zoom.png")
+    plt.plot(freqAxis_Hz, ChB_FFT_dBV)
+    plt.ylabel('ChB spectrum (dBV)')
+    plt.xlabel('Frequency (Hz)')
+    plt.grid(True)
+    plt.axis([0, 10e3, -100, 0])
+    plt.savefig(freqPlotNameChB)
+    # plt.show()
+    plt.close()
 
-elapsedTime = time.time() - startTime
-print('Done. Elapsed time: {:.1f}'.format(elapsedTime) + ' s.')
-
+    elapsedTime = time.time() - startTime
+    print('Done. Elapsed time: {:.1f}'.format(elapsedTime) + ' s.')
