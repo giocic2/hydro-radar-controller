@@ -236,9 +236,8 @@ print('BGT24MTR11 programming ended.')
 
 # Register values (obtained using ADIsimPLL and ADF4158 evaluation software)
 # Choose R0:
-print('Enter how many scanning directions: (1, 3, 5, ..., 21)')
-scanningDirections = input()
-VCOfreq_step = 1000 / (scanningDirections - 1)
+scanningDirections = input('Enter how many scanning directions: (1, 3, 5, ..., 21)')
+VCOfreq_step = 1000 / (int(scanningDirections) - 1)
 VCOfreq = 23500
 VCOfreq_str = str(VCOfreq)
 while VCOfreq <= 24500:
