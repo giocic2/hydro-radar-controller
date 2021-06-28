@@ -242,6 +242,7 @@ VCOfreq_step = 1000 / (int(scanningDirections) - 1)
 VCOfreq = 23500
 VCOfreq_str = str(VCOfreq)
 while VCOfreq <= 24500:
+    print("*****************")
     print("Scanning direction " + str(thisDirection) + " of " + str(scanningDirections) + "...")
     thisDirection += 1
     if VCOfreq == 23500:
