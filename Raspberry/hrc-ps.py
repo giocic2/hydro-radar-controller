@@ -236,10 +236,10 @@ print('BGT24MTR11 programming ended.')
 
 # Register values (obtained using ADIsimPLL and ADF4158 evaluation software)
 # Choose R0:
-scanningDirections = input('Enter how many scanning directions: (1, 3, 5, ..., 21): ')
+scanningDirections = int(input('Enter how many scanning directions: (1, 3, 5, ..., 21): '))
 thisDirection = 1
 if scanningDirections != 1:
-    VCOfreq_step = 1000 / (int(scanningDirections) - 1)
+    VCOfreq_step = 1000 / (scanningDirections - 1)
     VCOfreq = 23500
 if scanningDirections == 1:
     VCOfreq = int(input('Enter transmitter frequency (23500:50:24500)'))
