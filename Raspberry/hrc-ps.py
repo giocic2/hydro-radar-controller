@@ -126,7 +126,7 @@ while (continueCalibration == True):
 		print("x: ", round(x_g_avg))
 	accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00000000)
 	accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00001000)
-	whatNext = input("Repeat calibration? [y/n]:    ")
+	whatNext = input("Repeat calibration? [y/n]: ")
 	continueTakingUserInput = True
 	while continueTakingUserInput == True:
 		if whatNext == 'y':
@@ -236,7 +236,7 @@ print('BGT24MTR11 programming ended.')
 
 # Register values (obtained using ADIsimPLL and ADF4158 evaluation software)
 # Choose R0:
-scanningDirections = input('Enter how many scanning directions: (1, 3, 5, ..., 21)')
+scanningDirections = input('Enter how many scanning directions: (1, 3, 5, ..., 21): ')
 VCOfreq_step = 1000 / (int(scanningDirections) - 1)
 VCOfreq = 23500
 VCOfreq_str = str(VCOfreq)
