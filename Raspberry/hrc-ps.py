@@ -120,7 +120,7 @@ while (continueCalibration == True):
 	tiltAngle_avg = (tiltAngle_1st_avg + tiltAngle_2nd_avg) / 2
 # 	print("x y z [LSB]:", round(x_g_avg), round(y_g_avg), round(z_g_avg))
 # 	print("Tilt angle [deg] (two values that should be equal): {0:.2f} {1:.2f}".format(numpy.rad2deg(tiltAngle_1st_avg), numpy.rad2deg(tiltAngle_2nd_avg)))
-	print("Estimated tilt angle [deg]: {0:.1f}".format(np.rad2deg(tiltAngle_avg)))
+	print("Estimated tilt angle [deg]: {0:.1f}".format(round(np.rad2deg(tiltAngle_avg) * 2) / 2))
 	if round(x_g_avg) != 0:
 		print("WARNING: gravity along X-axis should be 0! Please align the sensor horizontally.")
 		print("x: ", round(x_g_avg))
