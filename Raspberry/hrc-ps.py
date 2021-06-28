@@ -237,10 +237,13 @@ print('BGT24MTR11 programming ended.')
 # Register values (obtained using ADIsimPLL and ADF4158 evaluation software)
 # Choose R0:
 scanningDirections = input('Enter how many scanning directions: (1, 3, 5, ..., 21): ')
+thisDirection = 1
 VCOfreq_step = 1000 / (int(scanningDirections) - 1)
 VCOfreq = 23500
 VCOfreq_str = str(VCOfreq)
 while VCOfreq <= 24500:
+    print("Scanning direction " + str(thisDirection) + " of " + str(scanningDirections) + "...")
+    thisDirection += 1
     if VCOfreq == 23500:
         R0, VCOfreq_str =        [0x00, 0x24, 0xB8, 0x00], '23500MHz'
     elif VCOfreq == 23550:
