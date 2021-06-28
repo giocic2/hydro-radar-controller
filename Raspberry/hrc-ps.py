@@ -238,8 +238,12 @@ print('BGT24MTR11 programming ended.')
 # Choose R0:
 scanningDirections = input('Enter how many scanning directions: (1, 3, 5, ..., 21): ')
 thisDirection = 1
-VCOfreq_step = 1000 / (int(scanningDirections) - 1)
-VCOfreq = 23500
+if scanningDirections != 1:
+    VCOfreq_step = 1000 / (int(scanningDirections) - 1)
+    VCOfreq = 23500
+if scanningDirections == 1:
+    VCOfreq = int(input('Enter transmitter frequency (23500:50:24500)'))
+    VCOfreq_step = 1000 # Just to put VCOfreq > 24500 at next cycle
 VCOfreq_str = str(VCOfreq)
 while VCOfreq <= 24500:
     print("*****************")
