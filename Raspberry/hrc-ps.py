@@ -242,7 +242,7 @@ if scanningDirections != 1:
     VCOfreq_step = 1000 / (scanningDirections - 1)
     VCOfreq = 23500
 if scanningDirections == 1:
-    VCOfreq = int(input('Enter transmitter frequency (23500:50:24500)'))
+    VCOfreq = int(input('Enter transmitter frequency (23500:50:24500): '))
     VCOfreq_step = 1001 # Just to put VCOfreq > 24500 at next cycle
 VCOfreq_str = str(VCOfreq)
 while VCOfreq <= 24500:
