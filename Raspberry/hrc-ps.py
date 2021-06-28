@@ -593,7 +593,7 @@ while VCOfreq <= 24500:
     freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
     print('Channel A - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChA_FFT_dBV.argmax()]) + ' Hz')
     # ChA spectrum - Full
-    freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_FFT-full.png")
+    freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_FFT-full.png")
     plt.plot(freqAxis_Hz, ChA_FFT_dBV)
     plt.ylabel('ChA spectrum (dBV)')
     plt.xlabel('Frequency (Hz)')
