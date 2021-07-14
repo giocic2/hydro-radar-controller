@@ -215,7 +215,7 @@ LSB = 0b00001000 # TX full power
 # bit0: TW power reduction bit0
 # TW output power reduction factors [dB] : 0, 0.4, 0.8, 1.4, 2.5, 4, 6, 9
 
-print('BGT24MTR11 programming started...')
+print('BGT24MTR11 programming started...', end = ' ')
 spi0 = spidev.SpiDev()
 # Use of /dev/spidev0.0, SPI0 with CE0 not used.
 # SCLK: BOARD23
@@ -319,7 +319,7 @@ while VCOfreq <= 24500:
     chipEnable.on()
 
     # ADF4158 programming
-    print('ADF4158 programming started...')
+    print('ADF4158 programming started...', end = ' ')
     spi0.open(0,0)
     spi0.max_speed_hz = 122000
     # CPOL=0, CPHA=1
@@ -361,6 +361,7 @@ while VCOfreq <= 24500:
 
     FFT_FREQ_BINS = 2**18
     print('Number of frequency bins for FFT computation: {:,}'.format(FFT_FREQ_BINS))
+    print('FFT resolution: ' + str(SAMPLING_FREQUENCY/FFT_FREQ_BINS) + ' Hz')
 
     # Create chandle and status ready for use.
     # The c_int16 constructor accepts an optional integer initializer. Default: 0.
@@ -368,7 +369,7 @@ while VCOfreq <= 24500:
     status = {}
 
     # Open 2000 series PicoScope
-    print('Setting up PiscoScope 2206B unit...')
+    print('Setting up PiscoScope 2206B unit...', end = ' ')
     # Returns handle to chandle for use in future API functions
     # First argument: number that uniquely identifies the scope (address of chandle)
     # Second argument:  first scope found (None)
@@ -438,7 +439,8 @@ while VCOfreq <= 24500:
     # The scope stores data in internal buffer memory and then transfer it to the PC via USB.
     # The data is lost when a new run is started in the same segment.
     # For PicoScope 2206B the buffer memory is 32 MS, maximum sampling rate 500 MS/s.
-    print('Running block capture...')
+    print('Running block capture...', end = ' ')
+    startTime = time.time()
     # Run block capture
     # handle = chandle
     # number of pre-trigger samples = preTriggerSamples
@@ -538,7 +540,7 @@ while VCOfreq <= 24500:
     print('Done.')
 
     # Stop the scope
-    print('Closing the scope...')
+    print('Closing the scope...', end = ' ')
     # handle = chandle
     status["stop"] = ps.ps2000aStop(chandle)
     assert_pico_ok(status["stop"])
@@ -554,119 +556,138 @@ while VCOfreq <= 24500:
     # Save raw data to .csv file (with timestamp);
     # Save time domain plots to .png files;
     # Save frequency domain plots to .png files.
-    startTime = time.time()
-    print('Saving raw samples to .csv file...')
-    print('Computing FFT...')
-    print('Generating .png plots...')
     timestamp = datetime.now().strftime("%Y%m%d_%I%M%S_%p")
-
+    
+    TIME_PLOTS = False # Set to 'False' to bypass time domain plots
+    FFT_PLOTS = False # Set to 'False' to bypass FFT computation and frequency domain plots
+    
     # ChA raw samples
+    print('Saving ChA raw samples to .csv file...', end = ' ')
     samplesFileNameChA = timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA.csv"
     completeFileNameChA = os.path.join('./data-acquired/raw-samples',samplesFileNameChA)
     with open(completeFileNameChA,'w') as file:
         writer = csv.writer(file)
         writer.writerows(zip(adc2mVChAMax,timeAxis))
-    # ChA time plot - Full length
-    timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_time-full.png")
-    plt.plot(timeAxis, adc2mVChAMax)
-    plt.ylabel('ChA (mV)')
-    plt.xlabel('Time (s)')
-    plt.grid(True)
-    plt.savefig(timePlotNameChA)
-    # plt.show()
-    plt.close()
-    # ChA time plot - Zoom
-    timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_time-zoom.png")
-    plt.plot(timeAxis, adc2mVChAMax)
-    plt.ylabel('Signal (mV)')
-    plt.xlabel('Time (s)')
-    plt.grid(True)
-    plt.axis([0, 5e-3, -500, 500])
-    plt.savefig(timePlotNameChA)
-    # plt.show()
-    plt.close()
-    # FFT ChA
-    ChA_FFT = np.fft.rfft(adc2mVChAMax, n = FFT_FREQ_BINS) # FFT of real signal
-    ChA_FFT_mV = np.abs(2/(totalSamples)*ChA_FFT) # FFT magnitude
-    ChA_FFT_dBV = 20*np.log10(ChA_FFT_mV/1000)
-    # ChA_PSD = numpy.abs(ChA_FFT)**2
-    # ChA_PSD_dBm = 10*numpy.log10(ChA_PSD/1e-3)
-    freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
-    freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
-    print('Channel A - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChA_FFT_dBV.argmax()]) + ' Hz')
-    # ChA spectrum - Full
-    freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_FFT-full.png")
-    plt.plot(freqAxis_Hz, ChA_FFT_dBV)
-    plt.ylabel('ChA spectrum (dBV)')
-    plt.xlabel('Frequency (Hz)')
-    plt.grid(True)
-    plt.savefig(freqPlotNameChA)
-    # plt.show()
-    plt.close()
-    # ChA spectrum - Zoom
-    freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_FFT-zoom.png")
-    plt.plot(freqAxis_Hz, ChA_FFT_dBV)
-    plt.ylabel('ChA spectrum (dBV)')
-    plt.xlabel('Frequency (Hz)')
-    plt.grid(True)
-    plt.axis([0, 10e3, -100, 0])
-    plt.savefig(freqPlotNameChA)
-    # plt.show()
-    plt.close()
+    print('Done.')
+    if TIME_PLOTS == True:
+        print('Generating ChA .png plots in time domain...', end = ' ')
+        # ChA time plot - Full length
+        timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_time-full.png")
+        plt.plot(timeAxis, adc2mVChAMax)
+        plt.ylabel('ChA (mV)')
+        plt.xlabel('Time (s)')
+        plt.grid(True)
+        plt.savefig(timePlotNameChA)
+        # plt.show()
+        plt.close()
+        # ChA time plot - Zoom
+        timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_time-zoom.png")
+        plt.plot(timeAxis, adc2mVChAMax)
+        plt.ylabel('Signal (mV)')
+        plt.xlabel('Time (s)')
+        plt.grid(True)
+        plt.axis([0, 5e-3, -500, 500])
+        plt.savefig(timePlotNameChA)
+        # plt.show()
+        plt.close()
+        print('Done.')
+    if FFT_PLOTS == True:
+        print('Computing ChA FFT...', end = ' ')
+        # FFT ChA
+        ChA_FFT = np.fft.rfft(adc2mVChAMax, n = FFT_FREQ_BINS) # FFT of real signal
+        ChA_FFT_mV = np.abs(2/(totalSamples)*ChA_FFT) # FFT magnitude
+        ChA_FFT_dBV = 20*np.log10(ChA_FFT_mV/1000)
+        # ChA_PSD = numpy.abs(ChA_FFT)**2
+        # ChA_PSD_dBm = 10*numpy.log10(ChA_PSD/1e-3)
+        freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
+        freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
+        print('Done.')
+        print('Channel A - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChA_FFT_dBV.argmax()]) + ' Hz')
+        # ChA spectrum - Full
+        print('Generating ChA .png plots in frequency domain...', end = ' ')
+        freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_FFT-full.png")
+        plt.plot(freqAxis_Hz, ChA_FFT_dBV)
+        plt.ylabel('ChA spectrum (dBV)')
+        plt.xlabel('Frequency (Hz)')
+        plt.grid(True)
+        plt.savefig(freqPlotNameChA)
+        # plt.show()
+        plt.close()
+        # ChA spectrum - Zoom
+        freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_FFT-zoom.png")
+        plt.plot(freqAxis_Hz, ChA_FFT_dBV)
+        plt.ylabel('ChA spectrum (dBV)')
+        plt.xlabel('Frequency (Hz)')
+        plt.grid(True)
+        plt.axis([0, 10e3, -100, 0])
+        plt.savefig(freqPlotNameChA)
+        # plt.show()
+        plt.close()
+        print('Done.')
 
     # ChB raw samples
+    print('Saving ChB raw samples to .csv file...', end = ' ')
     samplesFileNameChB = timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB.csv"
     completeFileNameChB = os.path.join('./data-acquired/raw-samples',samplesFileNameChB)
     with open(completeFileNameChB,'w') as file:
         writer = csv.writer(file)
         writer.writerows(zip(adc2mVChBMax,timeAxis))
-    # ChB time plot - Full length
-    timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_time-full.png")
-    plt.plot(timeAxis, adc2mVChBMax)
-    plt.ylabel('ChB (mV)')
-    plt.xlabel('Time (s)')
-    plt.grid(True)
-    plt.savefig(timePlotNameChB)
-    # plt.show()
-    plt.close()
-    # ChB time plot - Zoom
-    timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_time-zoom.png")
-    plt.plot(timeAxis, adc2mVChBMax)
-    plt.ylabel('ChB (mV)')
-    plt.xlabel('Time (s)')
-    plt.grid(True)
-    plt.axis([0, 5e-3, -500, 500])
-    plt.savefig(timePlotNameChB)
-    # plt.show()
-    plt.close()
-    # FFT ChB
-    ChB_FFT = np.fft.rfft(adc2mVChBMax, n = FFT_FREQ_BINS) # FFT of real signal
-    ChB_FFT_mV = np.abs(2/(totalSamples)*ChB_FFT) # FFT magnitude
-    ChB_FFT_dBV = 20*np.log10(ChB_FFT_mV/1000)
-    # ChB_PSD = numpy.abs(ChB_FFT)**2
-    # ChB_PSD_dBm = 10*numpy.log10(ChB_PSD/1e-3)
-    freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
-    freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
-    print('Channel B - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChB_FFT_dBV.argmax()]) + ' Hz')
-    # ChB spectrum - Full
-    freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_FFT-full.png")
-    plt.plot(freqAxis_Hz, ChB_FFT_dBV)
-    plt.ylabel('ChB spectrum (dBV)')
-    plt.xlabel('Frequency (Hz)')
-    plt.grid(True)
-    plt.savefig(freqPlotNameChB)
-    # plt.show()
-    plt.close()
-    # ChA spectrum - Zoom
-    freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_FFT-zoom.png")
-    plt.plot(freqAxis_Hz, ChB_FFT_dBV)
-    plt.ylabel('ChB spectrum (dBV)')
-    plt.xlabel('Frequency (Hz)')
-    plt.grid(True)
-    plt.axis([0, 10e3, -100, 0])
-    plt.savefig(freqPlotNameChB)
-    # plt.show()
-    plt.close()
+    print('Done.')
+    if TIME_PLOTS == True:
+        print('Generating ChB .png plots in time domain...', end=' ')
+        # ChB time plot - Full length
+        timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_time-full.png")
+        plt.plot(timeAxis, adc2mVChBMax)
+        plt.ylabel('ChB (mV)')
+        plt.xlabel('Time (s)')
+        plt.grid(True)
+        plt.savefig(timePlotNameChB)
+        # plt.show()
+        plt.close()
+        # ChB time plot - Zoom
+        timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_time-zoom.png")
+        plt.plot(timeAxis, adc2mVChBMax)
+        plt.ylabel('ChB (mV)')
+        plt.xlabel('Time (s)')
+        plt.grid(True)
+        plt.axis([0, 5e-3, -500, 500])
+        plt.savefig(timePlotNameChB)
+        # plt.show()
+        plt.close()
+        print('Done.')
+    if FFT_PLOTS == True:
+        print('Computing ChB FFT...', end = ' ')
+        # FFT ChB
+        ChB_FFT = np.fft.rfft(adc2mVChBMax, n = FFT_FREQ_BINS) # FFT of real signal
+        ChB_FFT_mV = np.abs(2/(totalSamples)*ChB_FFT) # FFT magnitude
+        ChB_FFT_dBV = 20*np.log10(ChB_FFT_mV/1000)
+        # ChB_PSD = numpy.abs(ChB_FFT)**2
+        # ChB_PSD_dBm = 10*numpy.log10(ChB_PSD/1e-3)
+        freqAxis = np.fft.rfftfreq(FFT_FREQ_BINS) # freqBins/2+1
+        freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
+        print('Done.')
+        print('Channel B - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChB_FFT_dBV.argmax()]) + ' Hz')
+        # ChB spectrum - Full
+        print('Generating ChA .png plots in frequency domain...', end = ' ')
+        freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_FFT-full.png")
+        plt.plot(freqAxis_Hz, ChB_FFT_dBV)
+        plt.ylabel('ChB spectrum (dBV)')
+        plt.xlabel('Frequency (Hz)')
+        plt.grid(True)
+        plt.savefig(freqPlotNameChB)
+        # plt.show()
+        plt.close()
+        # ChA spectrum - Zoom
+        freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_FFT-zoom.png")
+        plt.plot(freqAxis_Hz, ChB_FFT_dBV)
+        plt.ylabel('ChB spectrum (dBV)')
+        plt.xlabel('Frequency (Hz)')
+        plt.grid(True)
+        plt.axis([0, 10e3, -100, 0])
+        plt.savefig(freqPlotNameChB)
+        # plt.show()
+        plt.close()
+        print('Done.')
 
     elapsedTime = time.time() - startTime
-    print('Done. Elapsed time: {:.1f}'.format(elapsedTime) + ' s.')
+    print('Acquisition completed. Elapsed time (block acquisition and data management): {:.1f}'.format(elapsedTime) + ' s.')
