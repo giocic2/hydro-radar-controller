@@ -556,7 +556,7 @@ while VCOfreq <= 24500:
     # Save raw data to .csv file (with timestamp);
     # Save time domain plots to .png files;
     # Save frequency domain plots to .png files.
-    timestamp = datetime.now().strftime("%Y%m%d_%I%M%S_%p")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     TIME_PLOTS = False # Set to 'False' to bypass time domain plots
     FFT_PLOTS = False # Set to 'False' to bypass FFT computation and frequency domain plots
