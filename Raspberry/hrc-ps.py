@@ -236,7 +236,7 @@ print('BGT24MTR11 programming ended.')
 
 # Register values (obtained using ADIsimPLL and ADF4158 evaluation software)
 # Choose R0:
-scanningDirections = int(input('Enter how many scanning directions: (1, 2, 3, 5, 8, 21): '))
+scanningDirections = int(input('Enter how many scanning directions: (1, 2, 3, 5, 6, 11, 21): '))
 thisDirection = 1
 if scanningDirections != 1:
     VCOfreq_step = 1000 / (scanningDirections - 1)
