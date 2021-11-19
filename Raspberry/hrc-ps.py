@@ -353,7 +353,7 @@ while VCOfreq <= 24500:
         print('Sampling frequency: {:,}'.format(62.5e6/(timebase-2)) + ' Hz')
 
     # Specify acquisition time
-    ACQUISITION_TIME = 2 # s
+    ACQUISITION_TIME = 0.2 # s
     samplingInterval = 1/SAMPLING_FREQUENCY
     totalSamples = round(ACQUISITION_TIME/samplingInterval)
     print('Number of total samples (for each channel): {:,}'.format(totalSamples))
