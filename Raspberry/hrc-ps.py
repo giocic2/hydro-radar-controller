@@ -344,7 +344,7 @@ while VCOfreq <= 24500:
     ### PICOSCOPE ###
 
     # Specify sampling frequency
-    SAMPLING_FREQUENCY = 100e3 # Hz
+    SAMPLING_FREQUENCY = 1e6 # Hz
     if SAMPLING_FREQUENCY >= 125e6:
         timebase = round(log(500e6/SAMPLING_FREQUENCY,2))
         print('Sampling frequency: {:,}'.format(1/(2**timebase/5)*1e8) + ' Hz')
