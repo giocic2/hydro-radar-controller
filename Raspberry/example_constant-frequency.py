@@ -5,10 +5,10 @@ import spidev
 import time
 from gpiozero import OutputDevice
 
-chipSelectNeg = OutputDevice('BOARD3')
+chipSelectNeg = OutputDevice('BOARD11')
 chipSelectNeg.active_high = False
 chipSelectNeg.off()
-chipEnable = OutputDevice('BOARD5')
+chipEnable = OutputDevice('BOARD12')
 chipEnable.active_high = True
 chipEnable.off()
 loadEnable = OutputDevice('BOARD7')
