@@ -270,9 +270,9 @@ while VCOfreq <= 24500:
     elif VCOfreq == 23950:
         R0, VCOfreq_str =        [0x00, 0x25, 0x6C, 0x00], '23950MHz'
     elif VCOfreq == 24000:
-        # R0, VCOfreq_str =        [0x00, 0x25, 0x80, 0x00], '24000MHz' # Rcounter=1, Rdoubler=ON, Ref/2=OFF (default)
+        R0, VCOfreq_str =        [0x00, 0x25, 0x80, 0x00], '24000MHz' # Rcounter=1, Rdoubler=ON, Ref/2=OFF (default)
         # R0, VCOfreq_str =        [0x00, 0x4B, 0x00, 0x00], '24000MHz' # Rcounter=1, Rdoubler=OFF, Ref/2=OFF
-        R0, VCOfreq_str =        [0x00, 0x96, 0x00, 0x00], '24000MHz' # Rcounter=1, Rdoubler=OFF, Ref/2=ON
+        # R0, VCOfreq_str =        [0x00, 0x96, 0x00, 0x00], '24000MHz' # Rcounter=1, Rdoubler=OFF, Ref/2=ON
     elif VCOfreq == 24050:
         R0, VCOfreq_str =        [0x00, 0x25, 0x94, 0x00], '24050MHz'
     elif VCOfreq == 24100:
@@ -299,9 +299,11 @@ while VCOfreq <= 24500:
     VCOfreq += VCOfreq_step # Update VCOfreq value for the next loop cycle.
 
     R1 =        [0x00, 0x00, 0x00, 0x01]
-    # R2 =        [0x02, 0x10, 0xFF, 0xFA] # Rcounter=1, Rdoubler=ON, Ref/2=OFF (default)
+
+    R2 =        [0x02, 0x10, 0xFF, 0xFA] # Rcounter=1, Rdoubler=ON, Ref/2=OFF (default)
     # R2 =        [0x02, 0x00, 0xFF, 0xFA] # Rcounter=1, Rdoubler=OFF, Ref/2=OFF
-    R2 =        [0x02, 0x20, 0xFF, 0xFA] # Rcounter=1, Rdoubler=OFF, Ref/2=ON
+    # R2 =        [0x02, 0x20, 0xFF, 0xFA] # Rcounter=1, Rdoubler=OFF, Ref/2=ON
+
     R3 =        [0x00, 0x00, 0x00, 0x43]
     R4 =        [0x00, 0x18, 0xC8, 0x04]
     R5_load1 =  [0x00, 0x4B, 0xFF, 0xFD]
