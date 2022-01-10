@@ -343,6 +343,9 @@ assert_pico_ok(status["getTimebase2"])
 time.sleep(1) # Wait transient after switch to AC coupling.
 print('Done.')
 
+# Delay for AC coupling transient
+time.sleep(secs=1)
+
 ### GRID SCAN ###
 
 while VCOfreq <= 24500:
