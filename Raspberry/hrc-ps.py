@@ -344,7 +344,7 @@ time.sleep(1) # Wait transient after switch to AC coupling.
 print('Done.')
 
 # Delay for AC coupling transient
-time.sleep(secs=1)
+time.sleep(1)
 
 ### GRID SCAN ###
 
