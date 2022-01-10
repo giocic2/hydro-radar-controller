@@ -29,6 +29,8 @@ MAX_SCAN_ANGLE = np.deg2rad(15)
 ACCELL_AVERAGES = 20
 SAMPLING_FREQUENCY = 1e6 # Hz
 ACQUISITION_TIME = 0.2 # s
+TIME_PLOTS = False # Set to 'False' to bypass time domain plots
+FFT_PLOTS = False # Set to 'False' to bypass FFT computation and frequency domain plots
 
 ### ACCELEROMETER ###
 
@@ -555,10 +557,7 @@ while VCOfreq <= 24500:
     # Save time domain plots to .png files;
     # Save frequency domain plots to .png files.
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    
-    TIME_PLOTS = False # Set to 'False' to bypass time domain plots
-    FFT_PLOTS = False # Set to 'False' to bypass FFT computation and frequency domain plots
-    
+        
     # ChA raw samples
     print('Saving ChA raw samples to .csv file...', end = ' ')
     samplesFileNameChA = timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChA.csv"
