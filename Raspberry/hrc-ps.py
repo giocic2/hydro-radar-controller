@@ -293,7 +293,7 @@ assert_pico_ok(status["openunit"])
 # range = PS2000A_2V = 7
 # ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
 # analogue offset = -2 V = -2
-chARange = 5
+chARange = 6
 status["setChA"] = ps.ps2000aSetChannel(chandle, 0, 1, 0, chARange, 0)
 assert_pico_ok(status["setChA"])
 # Set up channel B
@@ -304,7 +304,7 @@ assert_pico_ok(status["setChA"])
 # range = PS2000A_2V = 7
 # ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
 # analogue offset = 0 V
-chBRange = 5
+chBRange = 6
 status["setChB"] = ps.ps2000aSetChannel(chandle, 1, 1, 0, chBRange, 0)
 assert_pico_ok(status["setChB"])
 
