@@ -22,6 +22,14 @@ import busio
 import board
 from struct import unpack
 
+### ACQUISITION SETTINGS ###
+PIVOT_HEIGHT = 0.56 # m. Vertical distance between pivot and ground level.
+ANTENNA_CENTER_POSITION = 0.12 # m. Distance between pivot and center of RX antenna.
+MAX_SCAN_ANGLE = np.deg2rad(15)
+ACCELL_AVERAGES = 20
+SAMPLING_FREQUENCY = 1e6 # Hz
+ACQUISITION_TIME = 0.2 # s
+
 ### ACCELEROMETER ###
 
 i2c = busio.I2C(board.SCL, board.SDA, frequency=100e3)
@@ -93,7 +101,6 @@ z_cfs = np.ceil(delta_z / 2)
 
 time.sleep(1)
 
-AVERAGES = 20
 x_g_avg = 0
 y_g_avg = 0
 z_g_avg = 0
@@ -102,21 +109,21 @@ tiltAngle_2nd_avg = 0
 continueCalibration = True
 
 while (continueCalibration == True):
-	for index in range(AVERAGES):
+	for index in range(ACCELL_AVERAGES):
 		DATA_XYZ = accelerometer._read_register(adafruit_adxl34x._REG_DATAX0, 6)
 		time.sleep(0.1)
 		x, y, z = unpack("<hhh",DATA_XYZ)
 		x_g = x - x_offset
 		y_g = y - y_offset
 		z_g = z - z_offset
-		x_g_avg = x_g_avg + x_g/AVERAGES
-		y_g_avg = y_g_avg + y_g/AVERAGES
-		z_g_avg = z_g_avg + z_g/AVERAGES
+		x_g_avg = x_g_avg + x_g/ACCELL_AVERAGES
+		y_g_avg = y_g_avg + y_g/ACCELL_AVERAGES
+		z_g_avg = z_g_avg + z_g/ACCELL_AVERAGES
 		# Two formulas to evaluate the same tilt angle
 		tiltAngle_1st = np.arcsin(- z_g / z_cfs)
 		tiltAngle_2nd = np.arccos(+ y_g / y_cfs)
-		tiltAngle_1st_avg = tiltAngle_1st_avg + tiltAngle_1st/AVERAGES
-		tiltAngle_2nd_avg = tiltAngle_2nd_avg + tiltAngle_2nd/AVERAGES
+		tiltAngle_1st_avg = tiltAngle_1st_avg + tiltAngle_1st/ACCELL_AVERAGES
+		tiltAngle_2nd_avg = tiltAngle_2nd_avg + tiltAngle_2nd/ACCELL_AVERAGES
 	tiltAngle_avg = (tiltAngle_1st_avg + tiltAngle_2nd_avg) / 2
 # 	print("x y z [LSB]:", round(x_g_avg), round(y_g_avg), round(z_g_avg))
 # 	print("Tilt angle [deg] (two values that should be equal): {0:.2f} {1:.2f}".format(numpy.rad2deg(tiltAngle_1st_avg), numpy.rad2deg(tiltAngle_2nd_avg)))
@@ -162,18 +169,14 @@ accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00000100)
 # ____                       ._____ground level
 #    <----------------------->
 #                l
-PIVOT_HEIGHT = 0.56 # m. Vertical distance between pivot and ground level.
-ANTENNA_CENTER_POSITION = 0.12 # m. Distance between pivot and center of RX antenna.
-ANTENNA_HEIGHT = PIVOT_HEIGHT + ANTENNA_CENTER_POSITION * np.cos(tiltAngle_avg)
-antennaHeight = str("{0:.2f}".format(ANTENNA_HEIGHT)) + "m"
-MAX_SCAN_ANGLE = np.deg2rad(15)
-maxSwath = 2 * ANTENNA_HEIGHT / np.tan(tiltAngle_avg) * np.tan(MAX_SCAN_ANGLE)
-# ANTENNA_HEIGHT
-print("Vertical distance between RX antenna and ground level: {0:.2f} m".format(ANTENNA_HEIGHT))
+antennaHeight = PIVOT_HEIGHT + ANTENNA_CENTER_POSITION * np.cos(tiltAngle_avg)
+antennaHeight_str = str("{0:.2f}".format(antennaHeight)) + "m"
+maxSwath = 2 * antennaHeight / np.tan(tiltAngle_avg) * np.tan(MAX_SCAN_ANGLE)
+print("Vertical distance between RX antenna and ground level: {0:.2f} m".format(antennaHeight))
 # d
-print("Distance between RX antenna and ground level @ beam direction: {0:.2f} m".format(ANTENNA_HEIGHT / np.sin(tiltAngle_avg)))
+print("Distance between RX antenna and ground level @ beam direction: {0:.2f} m".format(antennaHeight / np.sin(tiltAngle_avg)))
 # l
-print("Projection of that distance on ground level: {0:.2f} m".format(ANTENNA_HEIGHT / np.tan(tiltAngle_avg)))
+print("Projection of that distance on ground level: {0:.2f} m".format(antennaHeight / np.tan(tiltAngle_avg)))
 # swath
 print("Horizontal swath @ ground level: {0:.2f} m".format(maxSwath))
 
@@ -245,6 +248,101 @@ if scanningDirections == 1:
     VCOfreq = int(input('Enter transmitter frequency (23500:50:24500): '))
     VCOfreq_step = 1001 # Just to put VCOfreq > 24500 at next cycle
 VCOfreq_str = str(VCOfreq)
+
+### PICOSCOPE ###
+
+# Specify sampling frequency
+if SAMPLING_FREQUENCY >= 125e6:
+    timebase = round(log(500e6/SAMPLING_FREQUENCY,2))
+    print('Sampling frequency: {:,}'.format(1/(2**timebase/5)*1e8) + ' Hz')
+else:
+    timebase=round(62.5e6/SAMPLING_FREQUENCY+2)
+    print('Sampling frequency: {:,}'.format(62.5e6/(timebase-2)) + ' Hz')
+
+# Specify acquisition time
+samplingInterval = 1/SAMPLING_FREQUENCY
+totalSamples = round(ACQUISITION_TIME/samplingInterval)
+print('Number of total samples (for each channel): {:,}'.format(totalSamples))
+# Buffer memory size: 32 M
+
+FFT_FREQ_BINS = 2**18
+print('Number of frequency bins for FFT computation: {:,}'.format(FFT_FREQ_BINS))
+print('FFT resolution: ' + str(SAMPLING_FREQUENCY/FFT_FREQ_BINS) + ' Hz')
+
+# Create chandle and status ready for use.
+# The c_int16 constructor accepts an optional integer initializer. Default: 0.
+chandle = ctypes.c_int16()
+status = {}
+
+# Open 2000 series PicoScope
+print('Setting up PiscoScope 2206B unit...', end = ' ')
+# Returns handle to chandle for use in future API functions
+# First argument: number that uniquely identifies the scope (address of chandle)
+# Second argument:  first scope found (None)
+status["openunit"] = ps.ps2000aOpenUnit(ctypes.byref(chandle), None)
+# If any error, the following line will raise one.
+assert_pico_ok(status["openunit"])
+
+# Set up channel A
+# handle = chandle
+# channel = PS2000A_CHANNEL_A = 0
+# enabled = 1
+# coupling type = PS2000A_DC = 1
+# range = PS2000A_2V = 7
+# ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
+# analogue offset = -2 V = -2
+chARange = 5
+status["setChA"] = ps.ps2000aSetChannel(chandle, 0, 1, 0, chARange, 0)
+assert_pico_ok(status["setChA"])
+# Set up channel B
+# handle = chandle
+# channel = PS2000A_CHANNEL_B = 1
+# enabled = 1
+# coupling type = PS2000A_DC = 1
+# range = PS2000A_2V = 7
+# ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
+# analogue offset = 0 V
+chBRange = 5
+status["setChB"] = ps.ps2000aSetChannel(chandle, 1, 1, 0, chBRange, 0)
+assert_pico_ok(status["setChB"])
+
+# Set up single trigger
+# handle = chandle
+# enabled = 1
+# source = PS2000A_CHANNEL_A = 0
+# threshold = 1024 ADC counts
+# direction = PS2000A_RISING = 2
+# delay = 0 sample periods
+# auto Trigger = 1000 ms (if no trigger events occurs)
+status["trigger"] = ps.ps2000aSetSimpleTrigger(chandle, 1, 0, 0, 2, 1000000, 5000)
+assert_pico_ok(status["trigger"])
+# Set number of pre and post trigger samples to be collected
+preTriggerSamples = round(totalSamples/2)
+postTriggerSamples = totalSamples-preTriggerSamples
+# Get timebase information
+# handle = chandle
+# timebase: obtained by samplingFrequency (sample interval formula: (timebase-2)*16 ns [for timebase>=3])
+# noSamples = totalSamples
+# pointer to timeIntervalNanoseconds = ctypes.byref(timeIntervalNs)
+# oersample: not used, just initialized
+# pointer to totalSamples = ctypes.byref(returnedMaxSamples)
+# segment index = 0 (index of the memory segment to use, only 1 segment by default)
+timeIntervalns = ctypes.c_float()
+returnedMaxSamples = ctypes.c_int32()
+oversample = ctypes.c_int16(0)
+status["getTimebase2"] = ps.ps2000aGetTimebase2(chandle,
+                                                timebase,
+                                                totalSamples,
+                                                ctypes.byref(timeIntervalns),
+                                                oversample,
+                                                ctypes.byref(returnedMaxSamples),
+                                                0)
+assert_pico_ok(status["getTimebase2"])
+time.sleep(1) # Wait transient after switch to AC coupling.
+print('Done.')
+
+### GRID SCAN ###
+
 while VCOfreq <= 24500:
     print("*****************")
     print("Scanning direction " + str(thisDirection) + " of " + str(scanningDirections) + "...")
@@ -346,100 +444,6 @@ while VCOfreq <= 24500:
     spi0.close()
     time.sleep(1e-4)
     print('ADF4158 programming ended.')
-
-    ### PICOSCOPE ###
-
-    # Specify sampling frequency
-    SAMPLING_FREQUENCY = 1e6 # Hz
-    if SAMPLING_FREQUENCY >= 125e6:
-        timebase = round(log(500e6/SAMPLING_FREQUENCY,2))
-        print('Sampling frequency: {:,}'.format(1/(2**timebase/5)*1e8) + ' Hz')
-    else:
-        timebase=round(62.5e6/SAMPLING_FREQUENCY+2)
-        print('Sampling frequency: {:,}'.format(62.5e6/(timebase-2)) + ' Hz')
-
-    # Specify acquisition time
-    ACQUISITION_TIME = 0.2 # s
-    samplingInterval = 1/SAMPLING_FREQUENCY
-    totalSamples = round(ACQUISITION_TIME/samplingInterval)
-    print('Number of total samples (for each channel): {:,}'.format(totalSamples))
-    # Buffer memory size: 32 M
-
-    FFT_FREQ_BINS = 2**18
-    print('Number of frequency bins for FFT computation: {:,}'.format(FFT_FREQ_BINS))
-    print('FFT resolution: ' + str(SAMPLING_FREQUENCY/FFT_FREQ_BINS) + ' Hz')
-
-    # Create chandle and status ready for use.
-    # The c_int16 constructor accepts an optional integer initializer. Default: 0.
-    chandle = ctypes.c_int16()
-    status = {}
-
-    # Open 2000 series PicoScope
-    print('Setting up PiscoScope 2206B unit...', end = ' ')
-    # Returns handle to chandle for use in future API functions
-    # First argument: number that uniquely identifies the scope (address of chandle)
-    # Second argument:  first scope found (None)
-    status["openunit"] = ps.ps2000aOpenUnit(ctypes.byref(chandle), None)
-    # If any error, the following line will raise one.
-    assert_pico_ok(status["openunit"])
-
-    # Set up channel A
-    # handle = chandle
-    # channel = PS2000A_CHANNEL_A = 0
-    # enabled = 1
-    # coupling type = PS2000A_DC = 1
-    # range = PS2000A_2V = 7
-    # ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
-    # analogue offset = -2 V = -2
-    chARange = 5
-    status["setChA"] = ps.ps2000aSetChannel(chandle, 0, 1, 0, chARange, 0)
-    assert_pico_ok(status["setChA"])
-    # Set up channel B
-    # handle = chandle
-    # channel = PS2000A_CHANNEL_B = 1
-    # enabled = 1
-    # coupling type = PS2000A_DC = 1
-    # range = PS2000A_2V = 7
-    # ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
-    # analogue offset = 0 V
-    chBRange = 5
-    status["setChB"] = ps.ps2000aSetChannel(chandle, 1, 1, 0, chBRange, 0)
-    assert_pico_ok(status["setChB"])
-
-    # Set up single trigger
-    # handle = chandle
-    # enabled = 1
-    # source = PS2000A_CHANNEL_A = 0
-    # threshold = 1024 ADC counts
-    # direction = PS2000A_RISING = 2
-    # delay = 0 sample periods
-    # auto Trigger = 1000 ms (if no trigger events occurs)
-    status["trigger"] = ps.ps2000aSetSimpleTrigger(chandle, 1, 0, 0, 2, 1000000, 5000)
-    assert_pico_ok(status["trigger"])
-    # Set number of pre and post trigger samples to be collected
-    preTriggerSamples = round(totalSamples/2)
-    postTriggerSamples = totalSamples-preTriggerSamples
-    # Get timebase information
-    # handle = chandle
-    # timebase: obtained by samplingFrequency (sample interval formula: (timebase-2)*16 ns [for timebase>=3])
-    # noSamples = totalSamples
-    # pointer to timeIntervalNanoseconds = ctypes.byref(timeIntervalNs)
-    # oersample: not used, just initialized
-    # pointer to totalSamples = ctypes.byref(returnedMaxSamples)
-    # segment index = 0 (index of the memory segment to use, only 1 segment by default)
-    timeIntervalns = ctypes.c_float()
-    returnedMaxSamples = ctypes.c_int32()
-    oversample = ctypes.c_int16(0)
-    status["getTimebase2"] = ps.ps2000aGetTimebase2(chandle,
-                                                    timebase,
-                                                    totalSamples,
-                                                    ctypes.byref(timeIntervalns),
-                                                    oversample,
-                                                    ctypes.byref(returnedMaxSamples),
-                                                    0)
-    assert_pico_ok(status["getTimebase2"])
-    time.sleep(1) # Wait transient after switch to AC coupling.
-    print('Done.')
 
     # Block sampling mode
     # The scope stores data in internal buffer memory and then transfer it to the PC via USB.
@@ -569,7 +573,7 @@ while VCOfreq <= 24500:
     
     # ChA raw samples
     print('Saving ChA raw samples to .csv file...', end = ' ')
-    samplesFileNameChA = timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA.csv"
+    samplesFileNameChA = timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChA.csv"
     completeFileNameChA = os.path.join('./data-acquired/raw-samples',samplesFileNameChA)
     with open(completeFileNameChA,'w') as file:
         writer = csv.writer(file)
@@ -578,7 +582,7 @@ while VCOfreq <= 24500:
     if TIME_PLOTS == True:
         print('Generating ChA .png plots in time domain...', end = ' ')
         # ChA time plot - Full length
-        timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_time-full.png")
+        timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChA_time-full.png")
         plt.plot(timeAxis, adc2mVChAMax)
         plt.ylabel('ChA (mV)')
         plt.xlabel('Time (s)')
@@ -587,7 +591,7 @@ while VCOfreq <= 24500:
         # plt.show()
         plt.close()
         # ChA time plot - Zoom
-        timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_time-zoom.png")
+        timePlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChA_time-zoom.png")
         plt.plot(timeAxis, adc2mVChAMax)
         plt.ylabel('Signal (mV)')
         plt.xlabel('Time (s)')
@@ -611,7 +615,7 @@ while VCOfreq <= 24500:
         print('Channel A - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChA_FFT_dBV.argmax()]) + ' Hz')
         # ChA spectrum - Full
         print('Generating ChA .png plots in frequency domain...', end = ' ')
-        freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_FFT-full.png")
+        freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChA_FFT-full.png")
         plt.plot(freqAxis_Hz, ChA_FFT_dBV)
         plt.ylabel('ChA spectrum (dBV)')
         plt.xlabel('Frequency (Hz)')
@@ -620,7 +624,7 @@ while VCOfreq <= 24500:
         # plt.show()
         plt.close()
         # ChA spectrum - Zoom
-        freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChA_FFT-zoom.png")
+        freqPlotNameChA = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChA_FFT-zoom.png")
         plt.plot(freqAxis_Hz, ChA_FFT_dBV)
         plt.ylabel('ChA spectrum (dBV)')
         plt.xlabel('Frequency (Hz)')
@@ -633,7 +637,7 @@ while VCOfreq <= 24500:
 
     # ChB raw samples
     print('Saving ChB raw samples to .csv file...', end = ' ')
-    samplesFileNameChB = timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB.csv"
+    samplesFileNameChB = timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChB.csv"
     completeFileNameChB = os.path.join('./data-acquired/raw-samples',samplesFileNameChB)
     with open(completeFileNameChB,'w') as file:
         writer = csv.writer(file)
@@ -642,7 +646,7 @@ while VCOfreq <= 24500:
     if TIME_PLOTS == True:
         print('Generating ChB .png plots in time domain...', end=' ')
         # ChB time plot - Full length
-        timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_time-full.png")
+        timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChB_time-full.png")
         plt.plot(timeAxis, adc2mVChBMax)
         plt.ylabel('ChB (mV)')
         plt.xlabel('Time (s)')
@@ -651,7 +655,7 @@ while VCOfreq <= 24500:
         # plt.show()
         plt.close()
         # ChB time plot - Zoom
-        timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_time-zoom.png")
+        timePlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChB_time-zoom.png")
         plt.plot(timeAxis, adc2mVChBMax)
         plt.ylabel('ChB (mV)')
         plt.xlabel('Time (s)')
@@ -675,7 +679,7 @@ while VCOfreq <= 24500:
         print('Channel B - Estimated Doppler Frequency (spectrum peak): ' + str(freqAxis_Hz[ChB_FFT_dBV.argmax()]) + ' Hz')
         # ChB spectrum - Full
         print('Generating ChA .png plots in frequency domain...', end = ' ')
-        freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_FFT-full.png")
+        freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChB_FFT-full.png")
         plt.plot(freqAxis_Hz, ChB_FFT_dBV)
         plt.ylabel('ChB spectrum (dBV)')
         plt.xlabel('Frequency (Hz)')
@@ -684,7 +688,7 @@ while VCOfreq <= 24500:
         # plt.show()
         plt.close()
         # ChA spectrum - Zoom
-        freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight + "__" + VCOfreq_str + "__ChB_FFT-zoom.png")
+        freqPlotNameChB = os.path.join('./data-acquired/png-graphs', timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChB_FFT-zoom.png")
         plt.plot(freqAxis_Hz, ChB_FFT_dBV)
         plt.ylabel('ChB spectrum (dBV)')
         plt.xlabel('Frequency (Hz)')
