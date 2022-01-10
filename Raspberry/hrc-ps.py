@@ -549,18 +549,6 @@ while VCOfreq <= 24500:
     timeAxis = 1e-9*(np.linspace(0, (cTotalSamples.value) * (timeIntervalns.value-1), cTotalSamples.value))
     print('Done.')
 
-    # Stop the scope
-    print('Closing the scope...', end = ' ')
-    # handle = chandle
-    status["stop"] = ps.ps2000aStop(chandle)
-    assert_pico_ok(status["stop"])
-    # Close unitDisconnect the scope
-    # handle = chandle
-    status["close"] = ps.ps2000aCloseUnit(chandle)
-    assert_pico_ok(status["close"])
-    print('Done.')
-    print(status)
-
     ### DATA MANAGEMENT ##
 
     # Save raw data to .csv file (with timestamp);
@@ -701,3 +689,14 @@ while VCOfreq <= 24500:
 
     elapsedTime = time.time() - startTime
     print('Acquisition completed. Elapsed time (block acquisition and data management): {:.1f}'.format(elapsedTime) + ' s.')
+# Stop the scope
+print('Closing the scope...', end = ' ')
+# handle = chandle
+status["stop"] = ps.ps2000aStop(chandle)
+assert_pico_ok(status["stop"])
+# Close unitDisconnect the scope
+# handle = chandle
+status["close"] = ps.ps2000aCloseUnit(chandle)
+assert_pico_ok(status["close"])
+print('Done.')
+print(status)
