@@ -316,7 +316,7 @@ assert_pico_ok(status["setChB"])
 # direction = PS2000A_RISING = 2
 # delay = 0 sample periods
 # auto Trigger = 1000 ms (if no trigger events occurs)
-status["trigger"] = ps.ps2000aSetSimpleTrigger(chandle, 1, 0, 0, 2, 0, 5000)
+status["trigger"] = ps.ps2000aSetSimpleTrigger(chandle, 1, 0, 0, 2, 100_000, 5000)
 assert_pico_ok(status["trigger"])
 # Set number of pre and post trigger samples to be collected
 preTriggerSamples = round(0)
@@ -340,11 +340,9 @@ status["getTimebase2"] = ps.ps2000aGetTimebase2(chandle,
                                                 ctypes.byref(returnedMaxSamples),
                                                 0)
 assert_pico_ok(status["getTimebase2"])
-time.sleep(1) # Wait transient after switch to AC coupling.
 print('Done.')
 
 ### GRID SCAN ###
-firstTrigger = True
 while VCOfreq <= 24500:
     print("*****************")
     print("Scanning direction " + str(thisDirection) + " of " + str(scanningDirections) + "...")
