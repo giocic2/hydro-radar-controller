@@ -27,8 +27,8 @@ PIVOT_HEIGHT = 0.56 # m. Vertical distance between pivot and ground level.
 ANTENNA_CENTER_POSITION = 0.12 # m. Distance between pivot and center of RX antenna.
 MAX_SCAN_ANGLE = np.deg2rad(15)
 ACCELL_AVERAGES = 20
-SAMPLING_FREQUENCY = 1e6 # Hz
-ACQUISITION_TIME = 0.2 # s
+SAMPLING_FREQUENCY = 100e3 # Hz
+ACQUISITION_TIME = 1 # s
 TIME_PLOTS = False # Set to 'False' to bypass time domain plots
 FFT_PLOTS = False # Set to 'False' to bypass FFT computation and frequency domain plots
 
