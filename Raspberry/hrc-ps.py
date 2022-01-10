@@ -316,7 +316,7 @@ assert_pico_ok(status["setChB"])
 # direction = PS2000A_RISING = 2
 # delay = 0 sample periods
 # auto Trigger = 1000 ms (if no trigger events occurs)
-status["trigger"] = ps.ps2000aSetSimpleTrigger(chandle, 1, 0, 0, 2, 1000000, 5000)
+status["trigger"] = ps.ps2000aSetSimpleTrigger(chandle, 1, 0, 0, 2, 0, 5000)
 assert_pico_ok(status["trigger"])
 # Set number of pre and post trigger samples to be collected
 preTriggerSamples = round(totalSamples/2)
