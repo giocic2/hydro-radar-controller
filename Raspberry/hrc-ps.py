@@ -597,6 +597,7 @@ while VCOfreq <= 24500:
                 FFT_mV = np.convolve(FFT_mV, np.ones(smoothingWindow), 'valid') / smoothingWindow
                 FFT_dBV = 20*np.log10(FFT_mV/1000)
             print('Detected Doppler frequency: {:.1f}'.format(peakFreq) + ' Hz')
+            print('Amplitude of this FFT peak: {:.1f}'.format(20*np.log10(FFT_max/1000)) + ' dBV')
 
         
 
