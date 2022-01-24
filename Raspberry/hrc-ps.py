@@ -23,14 +23,18 @@ import board
 from struct import unpack
 
 ### ACQUISITION SETTINGS ###
-PIVOT_HEIGHT = 0.56 # m. Vertical distance between pivot and ground level.
+PIVOT_HEIGHT = 0.56 + 0.0 # m. Vertical distance between pivot and ground level.
 ANTENNA_CENTER_POSITION = 0.12 # m. Distance between pivot and center of RX antenna.
 MAX_SCAN_ANGLE = np.deg2rad(15)
 ACCELL_AVERAGES = 20
 SAMPLING_FREQUENCY = 100e3 # Hz
 ACQUISITION_TIME = 1 # s
+FFT_FREQ_BINS = 2**18
 REAL_TIME_MEAS = True # Set to 'False' to disable real time signal processing (FFT and surface velocity computation)
 RAW_DATA = True # Set to 'False' to disable saving of raw data in .csv format
+SMOOTHING = True # Set to 'False' to disable FFT smoothing (moving average)
+SMOOTHING_WINDOW_RATIO = 0.001 # total number of FFT points / number of window points
+FFT_THRESHOLD = -50 # dBV
 
 ### ACCELEROMETER ###
 
@@ -267,7 +271,7 @@ totalSamples = round(ACQUISITION_TIME/samplingInterval)
 print('Number of total samples (for each channel): {:,}'.format(totalSamples))
 # Buffer memory size: 32 M
 
-FFT_FREQ_BINS = 2**18
+# FFT settings
 print('Number of frequency bins for FFT computation: {:,}'.format(FFT_FREQ_BINS))
 print('FFT resolution: ' + str(SAMPLING_FREQUENCY/FFT_FREQ_BINS) + ' Hz')
 
@@ -573,6 +577,28 @@ while VCOfreq <= 24500:
             writer = csv.writer(file)
             writer.writerows(zip(adc2mVChBMax,timeAxis))
         print('Done.')
+    
+    if REAL_TIME_MEAS == True:
+        print('Real time measurements of surface velocity...', end = ' ')
+        complexSignal_mV = np.add(adc2mVChAMax, 1j*adc2mVChBMax)
+        FFT = np.fft.fft(complexSignal_mV, n = FFT_FREQ_BINS) # FFT of complex signal
+        FFT_mV = np.abs(2/(totalSamples)*FFT) # FFT magnitude
+        FFT_max = np.amax(FFT_mV)
+        FFT_dBV = 20*np.log10(FFT_mV/1000)
+        if np.amax(FFT_dBV) < FFT_THRESHOLD:
+            print('WARNING: Target not detected.')
+        else:
+            FFT_norm = FFT_mV / FFT_max
+            freqAxis = np.fft.fftfreq(FFT_FREQ_BINS) # freqBins+1
+            freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
+            peakFreq = abs(freqAxis_Hz[FFT_mV.argmax()])
+            if SMOOTHING == True:
+                smoothingWindow = int(round(FFT_FREQ_BINS * SMOOTHING_WINDOW_RATIO))
+                FFT_mV = np.convolve(FFT_mV, np.ones(smoothingWindow), 'valid') / smoothingWindow
+                FFT_dBV = 20*np.log10(FFT_mV/1000)
+            print('Detected Doppler frequency: ' + str(peakFreq) + ' Hz')
+
+        
 
     elapsedTime = time.time() - startTime
     print('Acquisition completed. Elapsed time (block acquisition and data management): {:.1f}'.format(elapsedTime) + ' s.')
