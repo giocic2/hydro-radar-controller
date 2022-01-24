@@ -580,7 +580,7 @@ while VCOfreq <= 24500:
     
     if REAL_TIME_MEAS == True:
         print('Real time measurements of surface velocity...', end = ' ')
-        complexSignal_mV = np.add(adc2mVChAMax, 1j*adc2mVChBMax)
+        complexSignal_mV = np.add(np.asarray(adc2mVChAMax), 1j*np.asarray(adc2mVChBMax))
         FFT = np.fft.fft(complexSignal_mV, n = FFT_FREQ_BINS) # FFT of complex signal
         FFT_mV = np.abs(2/(totalSamples)*FFT) # FFT magnitude
         FFT_max = np.amax(FFT_mV)
