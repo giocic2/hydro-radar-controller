@@ -30,6 +30,7 @@ ACCELL_AVERAGES = 20
 SAMPLING_FREQUENCY = 100e3 # Hz
 ACQUISITION_TIME = 1 # s
 REAL_TIME_MEAS = True # Set to 'False' to disable real time signal processing (FFT and surface velocity computation)
+RAW_DATA = True # Set to 'False' to disable saving of raw data in .csv format
 
 ### ACCELEROMETER ###
 
@@ -554,24 +555,24 @@ while VCOfreq <= 24500:
     # Save time domain plots to .png files;
     # Save frequency domain plots to .png files.
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
-    # ChA raw samples
-    print('Saving ChA raw samples to .csv file...', end = ' ')
-    samplesFileNameChA = timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChA.csv"
-    completeFileNameChA = os.path.join('./data-acquired/raw-samples',samplesFileNameChA)
-    with open(completeFileNameChA,'w') as file:
-        writer = csv.writer(file)
-        writer.writerows(zip(adc2mVChAMax,timeAxis))
-    print('Done.')
-
-    # ChB raw samples
-    print('Saving ChB raw samples to .csv file...', end = ' ')
-    samplesFileNameChB = timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChB.csv"
-    completeFileNameChB = os.path.join('./data-acquired/raw-samples',samplesFileNameChB)
-    with open(completeFileNameChB,'w') as file:
-        writer = csv.writer(file)
-        writer.writerows(zip(adc2mVChBMax,timeAxis))
-    print('Done.')
+    
+    if RAW_DATA == True:
+        # ChA raw samples
+        print('Saving ChA raw samples to .csv file...', end = ' ')
+        samplesFileNameChA = timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChA.csv"
+        completeFileNameChA = os.path.join('./data-acquired/raw-samples',samplesFileNameChA)
+        with open(completeFileNameChA,'w') as file:
+            writer = csv.writer(file)
+            writer.writerows(zip(adc2mVChAMax,timeAxis))
+        print('Done.')
+        # ChB raw samples
+        print('Saving ChB raw samples to .csv file...', end = ' ')
+        samplesFileNameChB = timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChB.csv"
+        completeFileNameChB = os.path.join('./data-acquired/raw-samples',samplesFileNameChB)
+        with open(completeFileNameChB,'w') as file:
+            writer = csv.writer(file)
+            writer.writerows(zip(adc2mVChBMax,timeAxis))
+        print('Done.')
 
     elapsedTime = time.time() - startTime
     print('Acquisition completed. Elapsed time (block acquisition and data management): {:.1f}'.format(elapsedTime) + ' s.')
