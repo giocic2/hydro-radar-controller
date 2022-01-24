@@ -34,7 +34,7 @@ REAL_TIME_MEAS = True # Set to 'False' to disable real time signal processing (F
 RAW_DATA = False # Set to 'False' to disable saving of raw data in .csv format
 SMOOTHING = True # Set to 'False' to disable FFT smoothing (moving average)
 SMOOTHING_WINDOW_RATIO = 0.001 # total number of FFT points / number of window points
-FFT_THRESHOLD = -20 # dBV
+FFT_THRESHOLD = -30 # dBV
 
 ### ACCELEROMETER ###
 
