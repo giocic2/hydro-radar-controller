@@ -23,18 +23,47 @@ import board
 from struct import unpack
 
 ### ACQUISITION SETTINGS ###
+
 PIVOT_HEIGHT = 0.56 + 0.0 # m. Vertical distance between pivot and ground level.
 ANTENNA_CENTER_POSITION = 0.12 # m. Distance between pivot and center of RX antenna.
 MAX_SCAN_ANGLE = np.deg2rad(15)
 ACCELL_AVERAGES = 20
 SAMPLING_FREQUENCY = 100e3 # Hz
 ACQUISITION_TIME = 1 # s
-FFT_FREQ_BINS = 2**18
+FFT_RESOL = 1 # Hz
 REAL_TIME_MEAS = True # Set to 'False' to disable real time signal processing (FFT and surface velocity computation)
 RAW_DATA = True # Set to 'False' to disable saving of raw data in .csv format
-SMOOTHING = True # Set to 'False' to disable FFT smoothing (moving average)
-SMOOTHING_WINDOW_RATIO = 0.001 # total number of FFT points / number of window points
+SMOOTHING = False # Set to 'False' to disable FFT smoothing (moving average)
+SMOOTHING_WINDOW = 10 # Hz
 FFT_THRESHOLD = -30 # dBV
+CHA_RANGE = 6 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
+CHB_RANGE = 6 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
+
+print("*** GRID SCAN SETTINGS ***")
+# Acquisition time
+print("Acquisition time (for each direction): ", ACQUISITION_TIME, ' s')
+# Sampling frequency
+if SAMPLING_FREQUENCY >= 125e6:
+    timebase = round(log(500e6/SAMPLING_FREQUENCY,2))
+    print('Sampling frequency: {:,}'.format(1/(2**timebase/5)*1e8) + ' Hz')
+else:
+    timebase=round(62.5e6/SAMPLING_FREQUENCY+2)
+    print('Sampling frequency: {:,}'.format(62.5e6/(timebase-2)) + ' Hz')
+samplingInterval = 1/SAMPLING_FREQUENCY
+totalSamples = round(ACQUISITION_TIME/samplingInterval)
+print('Number of total samples (for each channel): {:,}'.format(totalSamples))
+print('Ranges of Picoscope channels (V) ((1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20):')
+print('Ch.A (IFI): ', CHA_RANGE)
+print('Ch.B (IFQ): ', CHB_RANGE)
+# FFT bins and resolution
+freqBins_FFT = int(2**np.ceil(np.log2(abs(SAMPLING_FREQUENCY/2/FFT_RESOL))))
+if REAL_TIME_MEAS == True:
+    print('FFT resolution: ' + str(SAMPLING_FREQUENCY / freqBins_FFT) + ' Hz')
+    print('FFT bins: ' + str(freqBins_FFT))
+smoothingBins = int(round(SMOOTHING_WINDOW / (SAMPLING_FREQUENCY / freqBins_FFT)))
+if SMOOTHING == True:
+    print('Size of smoothing window (moving average): ' + str(smoothingBins) + ' bins')
+print('Threshold for detection: ' + str(FFT_THRESHOLD) + ' dBV')
 
 ### ACCELEROMETER ###
 
@@ -257,24 +286,6 @@ VCOfreq_str = str(VCOfreq)
 
 ### PICOSCOPE ###
 
-# Specify sampling frequency
-if SAMPLING_FREQUENCY >= 125e6:
-    timebase = round(log(500e6/SAMPLING_FREQUENCY,2))
-    print('Sampling frequency: {:,}'.format(1/(2**timebase/5)*1e8) + ' Hz')
-else:
-    timebase=round(62.5e6/SAMPLING_FREQUENCY+2)
-    print('Sampling frequency: {:,}'.format(62.5e6/(timebase-2)) + ' Hz')
-
-# Specify acquisition time
-samplingInterval = 1/SAMPLING_FREQUENCY
-totalSamples = round(ACQUISITION_TIME/samplingInterval)
-print('Number of total samples (for each channel): {:,}'.format(totalSamples))
-# Buffer memory size: 32 M
-
-# FFT settings
-print('Number of frequency bins for FFT computation: {:,}'.format(FFT_FREQ_BINS))
-print('FFT resolution: ' + str(SAMPLING_FREQUENCY/FFT_FREQ_BINS) + ' Hz')
-
 # Create chandle and status ready for use.
 # The c_int16 constructor accepts an optional integer initializer. Default: 0.
 chandle = ctypes.c_int16()
@@ -297,8 +308,7 @@ assert_pico_ok(status["openunit"])
 # range = PS2000A_2V = 7
 # ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
 # analogue offset = -2 V = -2
-chARange = 6
-status["setChA"] = ps.ps2000aSetChannel(chandle, 0, 1, 0, chARange, 0)
+status["setChA"] = ps.ps2000aSetChannel(chandle, 0, 1, 0, CHA_RANGE, 0)
 assert_pico_ok(status["setChA"])
 # Set up channel B
 # handle = chandle
@@ -308,8 +318,7 @@ assert_pico_ok(status["setChA"])
 # range = PS2000A_2V = 7
 # ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
 # analogue offset = 0 V
-chBRange = 6
-status["setChB"] = ps.ps2000aSetChannel(chandle, 1, 1, 0, chBRange, 0)
+status["setChB"] = ps.ps2000aSetChannel(chandle, 1, 1, 0, CHB_RANGE, 0)
 assert_pico_ok(status["setChB"])
 
 # Set up single trigger
@@ -546,8 +555,8 @@ while VCOfreq <= 24500:
     assert_pico_ok(status["maximumValue"])
 
     # convert ADC counts data to mV
-    adc2mVChAMax =  adc2mV(bufferAMax, chARange, maxADC)
-    adc2mVChBMax =  adc2mV(bufferBMax, chBRange, maxADC)
+    adc2mVChAMax =  adc2mV(bufferAMax, CHA_RANGE, maxADC)
+    adc2mVChBMax =  adc2mV(bufferBMax, CHB_RANGE, maxADC)
 
     # Create time data
     timeAxis = 1e-9*(np.linspace(0, (cTotalSamples.value) * (timeIntervalns.value-1), cTotalSamples.value))
@@ -581,20 +590,18 @@ while VCOfreq <= 24500:
     if REAL_TIME_MEAS == True:
         print('Real time measurements of surface velocity...', end = ' ')
         complexSignal_mV = np.add(np.asarray(adc2mVChAMax), 1j*np.asarray(adc2mVChBMax))
-        FFT = np.fft.fft(complexSignal_mV, n = FFT_FREQ_BINS) # FFT of complex signal
-        FFT_mV = np.abs(2/(totalSamples)*FFT) # FFT magnitude
+        FFT = np.fft.fft(complexSignal_mV, n = freqBins_FFT) # FFT of complex signal
+        FFT_mV = np.abs(1/(totalSamples)*FFT) # FFT magnitude
         FFT_max = np.amax(FFT_mV)
         FFT_dBV = 20*np.log10(FFT_mV/1000)
+        freqAxis = np.fft.fftfreq(freqBins_FFT) # freqBins+1
+        freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
+        peakFreq = freqAxis_Hz[FFT_mV.argmax()]
         if np.amax(FFT_dBV) < FFT_THRESHOLD:
             print('WARNING: Target not detected.')
         else:
-            FFT_norm = FFT_mV / FFT_max
-            freqAxis = np.fft.fftfreq(FFT_FREQ_BINS) # freqBins+1
-            freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
-            peakFreq = abs(freqAxis_Hz[FFT_mV.argmax()])
             if SMOOTHING == True:
-                smoothingWindow = int(round(FFT_FREQ_BINS * SMOOTHING_WINDOW_RATIO))
-                FFT_mV = np.convolve(FFT_mV, np.ones(smoothingWindow), 'valid') / smoothingWindow
+                FFT_mV = np.convolve(FFT_mV, np.ones(smoothingBins), 'same') / smoothingBins
                 FFT_dBV = 20*np.log10(FFT_mV/1000)
             print('Detected Doppler frequency: {:.1f}'.format(peakFreq) + ' Hz')
             print('Amplitude of this FFT peak: {:.1f}'.format(20*np.log10(FFT_max/1000)) + ' dBV')
