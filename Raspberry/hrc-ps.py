@@ -605,9 +605,6 @@ while VCOfreq <= 24500:
                 FFT_dBV = 20*np.log10(FFT_mV/1000)
             print('Detected Doppler frequency: {:.1f}'.format(peakFreq) + ' Hz')
             print('Amplitude of this FFT peak: {:.1f}'.format(20*np.log10(FFT_max/1000)) + ' dBV')
-
-        
-
     elapsedTime = time.time() - startTime
     print('Acquisition completed. Elapsed time (block acquisition and data management): {:.1f}'.format(elapsedTime) + ' s.')
 # Stop the scope
