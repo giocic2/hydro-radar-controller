@@ -33,11 +33,13 @@ ACQUISITION_TIME = 1 # s
 FFT_RESOL = 1 # Hz
 REAL_TIME_MEAS = True # Set to 'False' to disable real time signal processing (FFT and surface velocity computation)
 RAW_DATA = True # Set to 'False' to disable saving of raw data in .csv format
-SMOOTHING = False # Set to 'False' to disable FFT smoothing (moving average)
+SMOOTHING = True # Set to 'False' to disable FFT smoothing (moving average)
 SMOOTHING_WINDOW = 10 # Hz
 FFT_THRESHOLD = -30 # dBV
 CHA_RANGE = 6 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
 CHB_RANGE = 6 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
+FREQUENCY_MIN = 0
+FREQUENCY_MAX = 50_000
 
 print("*** GRID SCAN SETTINGS ***")
 # Acquisition time
@@ -52,7 +54,7 @@ else:
 samplingInterval = 1/SAMPLING_FREQUENCY
 totalSamples = round(ACQUISITION_TIME/samplingInterval)
 print('Number of total samples (for each channel): {:,}'.format(totalSamples))
-print('Ranges of Picoscope channels (V) ((1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20):')
+print('Full-scale ranges for PicoScope channels (V) ([1:10]: 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20):')
 print('Ch.A (IFI): ', CHA_RANGE)
 print('Ch.B (IFQ): ', CHB_RANGE)
 # FFT bins and resolution
@@ -105,7 +107,7 @@ accelerometer._write_register_byte(adafruit_adxl34x._REG_DATA_FORMAT, 0b00001011
 # FIFO control
 # bit8-7: FIFO mode (stream)
 # bit6: trigger (INT1, but unuseful)
-# bit5-1: samples needed to trigger watermark interrupt (immediately)  
+# bit5-1: samples needed to trigger watermark interrupt (immediately)
 accelerometer._write_register_byte(adafruit_adxl34x._REG_FIFO_CTL, 0b10000000)
 
 # Edit 'offset' and 'calibrated full-scale' sections after "calibration.py" test.
