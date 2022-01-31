@@ -283,6 +283,11 @@ if scanningDirections == 1:
     VCOfreq = int(input('Enter transmitter frequency (23500:50:24500): '))
     VCOfreq_step = 1001 # Just to put VCOfreq > 24500 at next cycle
 VCOfreq_str = str(VCOfreq)
+directions_DEG = np.zeros(scanningDirections)
+index = 0
+for element in directions_DEG:
+    element = 15 - (30 / (scanningDirections-1)) * index
+    index += 1
 
 ### PICOSCOPE ###
 
