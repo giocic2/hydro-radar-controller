@@ -144,7 +144,7 @@ tiltAngle_2nd_avg = 0
 continueCalibration = True
 
 while (continueCalibration == True):
-	for index in range(ACCELL_AVERAGES):
+	for directionIndex in range(ACCELL_AVERAGES):
 		DATA_XYZ = accelerometer._read_register(adafruit_adxl34x._REG_DATAX0, 6)
 		time.sleep(0.1)
 		x, y, z = unpack("<hhh",DATA_XYZ)
@@ -284,10 +284,11 @@ if scanningDirections == 1:
     VCOfreq_step = 1001 # Just to put VCOfreq > 24500 at next cycle
 VCOfreq_str = str(VCOfreq)
 directions_DEG = np.zeros(scanningDirections)
-index = 0
+directionIndex = 0
 for element in directions_DEG:
-    element = 15 - (30 / (scanningDirections-1)) * index
-    index += 1
+    element = 15 - (30 / (scanningDirections-1)) * directionIndex
+    directionIndex += 1
+directionIndex = 0 # reset
 
 ### PICOSCOPE ###
 
@@ -413,6 +414,8 @@ while VCOfreq <= 24500:
         raise ValueError('Transmitter frequency value not valid.')
     
     VCOfreq += VCOfreq_step # Update VCOfreq value for the next loop cycle.
+    direction = directions_DEG[directionIndex]
+
 
     R1 =        [0x00, 0x00, 0x00, 0x01]
 
@@ -636,6 +639,7 @@ while VCOfreq <= 24500:
                         centroidDetected = True
                         break
             print('Detected Doppler frequency: {:.1f}'.format(peakFreq) + ' Hz')
+            print('Resulting surface velocity: {:.1f}'.format(VCOfreq / (2*3e8*np.cos(np.deg2rad(directions_DEG[directionIndex])*np.cos(tiltAngle_avg)))), ' m/s')
             print('Amplitude of this FFT peak (norm.smooth.): {:.1f}'.format(FFT_norm_dB_smooth_max) + ' dB')
             print('Bandwidth threshold: {:.1f}'.format(BANDWIDTH_THRESHOLD) + ' dB')
             print('Bandwidth: {:.1f}'.format(stopBand - startBand) + ' Hz')
