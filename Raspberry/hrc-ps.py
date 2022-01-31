@@ -62,8 +62,7 @@ if REAL_TIME_MEAS == True:
     print('FFT resolution: ' + str(SAMPLING_FREQUENCY / freqBins_FFT) + ' Hz')
     print('FFT bins: ' + str(freqBins_FFT))
 smoothingBins = int(round(SMOOTHING_WINDOW / (SAMPLING_FREQUENCY / freqBins_FFT)))
-if SMOOTHING == True:
-    print('Size of smoothing window (moving average): ' + str(smoothingBins) + ' bins')
+print('Size of smoothing window (moving average): ' + str(smoothingBins) + ' bins')
 print('Threshold for detection: ' + str(FFT_THRESHOLD) + ' dBV')
 
 ### ACCELEROMETER ###
