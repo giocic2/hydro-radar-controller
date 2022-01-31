@@ -285,10 +285,11 @@ if scanningDirections == 1:
 VCOfreq_str = str(VCOfreq)
 directions_DEG = np.zeros(scanningDirections)
 directionIndex = 0
-for element in directions_DEG:
-    element = 15 - (30 / (scanningDirections-1)) * directionIndex
-    directionIndex += 1
-directionIndex = 0 # reset
+if scanningDirections != 1:
+    for element in directions_DEG:
+        element = 15 - (30 / (scanningDirections-1)) * directionIndex
+        directionIndex += 1
+    directionIndex = 0 # reset
 
 ### PICOSCOPE ###
 
