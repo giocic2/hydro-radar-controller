@@ -33,13 +33,12 @@ ACQUISITION_TIME = 1 # s
 FFT_RESOL = 1 # Hz
 REAL_TIME_MEAS = True # Set to 'False' to disable real time signal processing (FFT and surface velocity computation)
 RAW_DATA = True # Set to 'False' to disable saving of raw data in .csv format
-SMOOTHING = True # Set to 'False' to disable FFT smoothing (moving average)
 SMOOTHING_WINDOW = 10 # Hz
 FFT_THRESHOLD = -30 # dBV
 CHA_RANGE = 6 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
 CHB_RANGE = 6 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
-FREQUENCY_MIN = 0
-FREQUENCY_MAX = 50_000
+FREQUENCY_MIN = -50_000
+BANDWIDTH_THRESHOLD = 6 # dB
 
 print("*** GRID SCAN SETTINGS ***")
 # Acquisition time
@@ -591,22 +590,53 @@ while VCOfreq <= 24500:
     
     if REAL_TIME_MEAS == True:
         print('Real time measurements of surface velocity...', end = ' ')
+        # FFT computation
         complexSignal_mV = np.add(np.asarray(adc2mVChAMax), 1j*np.asarray(adc2mVChBMax))
-        FFT = np.fft.fft(complexSignal_mV, n = freqBins_FFT) # FFT of complex signal
+        FFT = np.fft.fftshift(np.fft.fft(complexSignal_mV, n = freqBins_FFT)) # FFT of complex signal
         FFT_mV = np.abs(1/(totalSamples)*FFT) # FFT magnitude
         FFT_max = np.amax(FFT_mV)
         FFT_dBV = 20*np.log10(FFT_mV/1000)
-        freqAxis = np.fft.fftfreq(freqBins_FFT) # freqBins+1
+        freqAxis = np.fft.fftshift(np.fft.fftfreq(freqBins_FFT)) # freqBins+1
         freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
-        peakFreq = freqAxis_Hz[FFT_mV.argmax()]
+        
+        # FFT computation: normalized and smoothed 
+        FFT_norm = FFT_mV / FFT_max
+        FFT_norm_dB = 20*np.log10(FFT_norm)
+        FFT_norm_smooth = np.convolve(FFT_norm, np.ones(smoothingBins), 'same') / smoothingBins
+        FFT_norm_dB_smooth = 20*np.log10(FFT_norm_smooth)
+        FFT_norm_dB_max = np.amax(FFT_norm_dB)
+        FFT_norm_dB_smooth_max = np.amax(FFT_norm_dB_smooth)
+        peakFreq = freqAxis_Hz[FFT_norm_dB.argmax()] # If two identical maxima, only the first occurrence is shown (negative frequency)
+        # Doppler centroid bandwidth
         if np.amax(FFT_dBV) < FFT_THRESHOLD:
             print('WARNING: Target not detected.')
         else:
-            if SMOOTHING == True:
-                FFT_mV = np.convolve(FFT_mV, np.ones(smoothingBins), 'same') / smoothingBins
-                FFT_dBV = 20*np.log10(FFT_mV/1000)
+            freqIndex = 0
+            stopIndex = 0
+            start_detected = False
+            startBand = 0
+            stopBand = 0
+            centroidDetected = False
+            while centroidDetected == False:
+                for element in FFT_norm_dB_smooth:
+                    if element >= (FFT_norm_dB_smooth_max - BANDWIDTH_THRESHOLD):
+                        if start_detected == False:
+                            startBand = max(freqAxis_Hz[freqIndex],FREQUENCY_MIN)
+                            start_detected = True
+                        stopIndex = max(stopIndex,freqIndex)
+                        stopBand = freqAxis_Hz[stopIndex]
+                    else:
+                        start_detected = False
+                    freqIndex += 1
+                    if startBand < peakFreq and stopBand > peakFreq:
+                        centroidDetected = True
+                        break
             print('Detected Doppler frequency: {:.1f}'.format(peakFreq) + ' Hz')
-            print('Amplitude of this FFT peak: {:.1f}'.format(20*np.log10(FFT_max/1000)) + ' dBV')
+            print('Amplitude of this FFT peak (norm.smooth.): {:.1f}'.format(FFT_norm_dB_smooth_max) + ' dB')
+            print('Bandwidth threshold: {:.1f}'.format(BANDWIDTH_THRESHOLD) + ' dB')
+            print('Bandwidth: {:.1f}'.format(stopBand - startBand) + ' Hz')
+            print('Bandwidth starts at {:.1f}'.format(startBand) + ' Hz')
+            print('Bandwidth stops at {:.1f}'.format(stopBand) + ' Hz')
     elapsedTime = time.time() - startTime
     print('Acquisition completed. Elapsed time (block acquisition and data management): {:.1f}'.format(elapsedTime) + ' s.')
 # Stop the scope
