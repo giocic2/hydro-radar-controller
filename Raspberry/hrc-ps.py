@@ -286,10 +286,11 @@ if scanningDirections == 1:
 VCOfreq_str = str(VCOfreq)
 directions_DEG = np.zeros(scanningDirections)
 directionIndex = 0
-for element in directions_DEG:
-    element = 15 - (30 / (scanningDirections-1)) * directionIndex
-    directionIndex += 1
-directionIndex = 0 # reset
+if scanningDirections != 1:
+    for element in directions_DEG:
+        element = 15 - (30 / (scanningDirections-1)) * directionIndex
+        directionIndex += 1
+    directionIndex = 0 # reset
 
 ### PICOSCOPE ###
 
@@ -642,7 +643,7 @@ while VCOfreq <= 24500:
                         centroidDetected = True
                         break
             print('Detected Doppler frequency: {:.1f}'.format(peakFreq) + ' Hz')
-            print('Resulting surface velocity: {:.1f}'.format(VCOfreq / (2*3e8*np.cos(np.deg2rad(directions_DEG[directionIndex])*np.cos(tiltAngle_avg)))), ' m/s')
+            print('Resulting surface velocity: {:.1f}'.format((3e8 * peakFreq) / (2 * (VCOfreq * 1e6) * np.cos(np.deg2rad(directions_DEG[directionIndex]) * np.cos(tiltAngle_avg)))), ' m/s')
             print('Amplitude of this FFT peak (norm.smooth.): {:.1f}'.format(FFT_norm_dB_smooth_max) + ' dB')
             print('Bandwidth threshold: {:.1f}'.format(BANDWIDTH_THRESHOLD) + ' dB')
             print('Bandwidth: {:.1f}'.format(stopBand - startBand) + ' Hz')
