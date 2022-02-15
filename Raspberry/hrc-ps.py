@@ -39,6 +39,7 @@ CHA_RANGE = 6 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 
 CHB_RANGE = 6 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
 FREQUENCY_MIN = -50_000
 BANDWIDTH_THRESHOLD = 6 # dB
+WINDOWING = True # Set to 'False' to disable windowing before FFT computation
 
 print("*** GRID SCAN SETTINGS ***")
 # Acquisition time
@@ -599,6 +600,8 @@ while VCOfreq <= 24500:
         print('Real time measurements of surface velocity...', end = ' ')
         # FFT computation
         complexSignal_mV = np.add(np.asarray(adc2mVChAMax), 1j*np.asarray(adc2mVChBMax))
+        if WINDOWING == True:
+            complexSignal_mV = complexSignal_mV * np.hamming(totalSamples)
         FFT = np.fft.fftshift(np.fft.fft(complexSignal_mV, n = freqBins_FFT)) # FFT of complex signal
         FFT_mV = np.abs(1/(totalSamples)*FFT) # FFT magnitude
         FFT_max = np.amax(FFT_mV)
