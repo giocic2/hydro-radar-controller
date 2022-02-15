@@ -635,7 +635,7 @@ while VCOfreq <= 24500:
                     else:
                         start_detected = False
                     freqIndex += 1
-                    if startBand < peakFreq and stopBand > peakFreq:
+                    if startBand <= peakFreq and stopBand >= peakFreq:
                         centroidDetected = True
                         break
             print('Detected Doppler frequency: {:.1f}'.format(peakFreq) + ' Hz')
