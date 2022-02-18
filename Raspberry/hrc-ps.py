@@ -37,7 +37,8 @@ SMOOTHING_WINDOW = 10 # Hz
 FFT_THRESHOLD = -80 # dBV
 CHA_RANGE = 6 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
 CHB_RANGE = 6 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
-FREQUENCY_MIN = -50_000
+FREQUENCY_MIN = -50_000 # Hz
+FREQUENCY_MAX = 50_000 # Hz
 BANDWIDTH_THRESHOLD = 6 # dB
 WINDOWING = True # Set to 'False' to disable windowing before FFT computation
 
@@ -640,9 +641,9 @@ while VCOfreq <= 24500:
                     if freqIndex >= (freqBins_FFT+1):
                         centroidDetected = True
                         break
-            print('Detected Doppler frequency: {:.1f}'.format(peakFreq) + ' Hz')
-            print('Resulting surface velocity: {:.1f}'.format((3e8 * peakFreq) / (2 * (VCOfreq * 1e6) * np.cos(np.deg2rad(directions_DEG[directionIndex]) * np.cos(tiltAngle_avg)))), ' m/s')
-            print('Amplitude of this FFT peak (norm.smooth.): {:.1f}'.format(FFT_norm_dB_smooth_max) + ' dB')
+            print('Center of Doppler centroid: {:.1f}'.format((stopBand + startBand)/2) + ' Hz')
+            print('Resulting surface velocity: {:.1f}'.format((3e8 * (stopBand + startBand)/2) / (2 * (VCOfreq * 1e6) * np.cos(np.deg2rad(directions_DEG[directionIndex]) * np.cos(tiltAngle_avg)))), ' m/s')
+            print('Amplitude of FFT peak (norm.smooth.): {:.1f}'.format(FFT_norm_dB_smooth_max) + ' dB')
             print('Bandwidth threshold: {:.1f}'.format(BANDWIDTH_THRESHOLD) + ' dB')
             print('Bandwidth: {:.1f}'.format(stopBand - startBand) + ' Hz')
             print('Bandwidth starts at {:.1f}'.format(startBand) + ' Hz')
