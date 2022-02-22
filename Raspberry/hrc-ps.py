@@ -281,8 +281,6 @@ time.sleep(1e-4)
 chipSelectNeg.off()
 print('BGT24MTR11 programming ended.')
 
-# Register values (obtained using ADIsimPLL and ADF4158 evaluation software)
-# Choose R0:
 scanningDirections = int(input('Enter how many scanning directions: (1, 2, 3, 5, 6, 11, 21): '))
 thisDirection = 1
 if scanningDirections != 1:
@@ -299,6 +297,8 @@ if scanningDirections != 1:
         element = 15 - (30 / (scanningDirections-1)) * directionIndex
         directionIndex += 1
     directionIndex = 0 # reset
+# Array to save FFT peak values
+FFT_dBV_peaks = np.zeros(scanningDirections)
 
 ### PICOSCOPE ###
 
@@ -376,6 +376,8 @@ while VCOfreq <= 24500:
     print("*****************")
     print("Scanning direction " + str(thisDirection) + " of " + str(scanningDirections) + "...")
     thisDirection += 1
+    # Register values (obtained using ADIsimPLL and ADF4158 evaluation software)
+    # Choose R0:
     if VCOfreq == 23500:
         R0, VCOfreq_str =        [0x00, 0x24, 0xB8, 0x00], '23500MHz'
     elif VCOfreq == 23550:
@@ -618,6 +620,7 @@ while VCOfreq <= 24500:
             FFT_mV[maxBin:-1] = 1e-10 # zero
         FFT_max = np.amax(FFT_mV)
         FFT_dBV = 20*np.log10(FFT_mV/1000)
+        FFT_dBV_peaks[thisDirection-1] = np.amax(FFT_dBV)
         freqAxis = np.fft.fftshift(np.fft.fftfreq(freqBins_FFT)) # freqBins+1
         freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
         
@@ -672,3 +675,6 @@ status["close"] = ps.ps2000aCloseUnit(chandle)
 assert_pico_ok(status["close"])
 print('Done.')
 print(status)
+print('Recap:')
+print(directions_DEG)
+print(FFT_dBV_peaks)
