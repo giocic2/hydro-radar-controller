@@ -294,7 +294,7 @@ directions_DEG = np.zeros(scanningDirections)
 directionIndex = 0
 if scanningDirections != 1:
     for element in directions_DEG:
-        element = 15 - (30 / (scanningDirections-1)) * directionIndex
+        directions_DEG[directionIndex] = 15 - (30 / (scanningDirections-1)) * directionIndex
         directionIndex += 1
     directionIndex = 0 # reset
 # Array to save FFT peak values
@@ -664,6 +664,7 @@ while VCOfreq <= 24500:
             print('Resulting surface velocity: {:.1f}'.format((3e8 * (stopBand + startBand)/2) / (2 * (VCOfreq * 1e6) * np.cos(np.deg2rad(directions_DEG[directionIndex]) * np.cos(tiltAngle_avg)))), ' m/s')
     elapsedTime = time.time() - startTime
     print('Acquisition completed. Elapsed time (block acquisition and data management): {:.1f}'.format(elapsedTime) + ' s.')
+    directionIndex += 1
 # Stop the scope
 print('Closing the scope...', end = ' ')
 # handle = chandle
