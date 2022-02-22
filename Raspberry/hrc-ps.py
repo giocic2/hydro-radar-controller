@@ -297,8 +297,10 @@ if scanningDirections != 1:
         directions_DEG[directionIndex] = 15 - (30 / (scanningDirections-1)) * directionIndex
         directionIndex += 1
     directionIndex = 0 # reset
-# Array to save FFT peak values
+# Array to save FFT peak amplitudes and frequencies
 FFT_dBV_peaks = np.zeros(scanningDirections)
+centroid_frequencies = np.zeros(scanningDirections)
+surface_velocities = np.zeros(scanningDirections)
 
 ### PICOSCOPE ###
 
@@ -662,6 +664,8 @@ while VCOfreq <= 24500:
             print('Bandwidth stops at {:.1f}'.format(stopBand) + ' Hz')
             print('Center of Doppler centroid: {:.1f}'.format((stopBand + startBand)/2) + ' Hz')
             print('Resulting surface velocity: {:.1f}'.format((3e8 * (stopBand + startBand)/2) / (2 * (VCOfreq * 1e6) * np.cos(np.deg2rad(directions_DEG[directionIndex]) * np.cos(tiltAngle_avg)))), ' m/s')
+            centroid_frequencies[directionIndex] = (stopBand + startBand)/2
+            surface_velocities[directionIndex] = (3e8 * (stopBand + startBand)/2) / (2 * (VCOfreq * 1e6) * np.cos(np.deg2rad(directions_DEG[directionIndex]) * np.cos(tiltAngle_avg)))
     elapsedTime = time.time() - startTime
     print('Acquisition completed. Elapsed time (block acquisition and data management): {:.1f}'.format(elapsedTime) + ' s.')
     directionIndex += 1
@@ -677,5 +681,10 @@ assert_pico_ok(status["close"])
 print('Done.')
 print(status)
 print('Recap:')
-print(directions_DEG)
-print(FFT_dBV_peaks)
+print('[DEG, dBV, Hz, m/s]')
+index = 0
+for element in directions_DEG:
+    print('[{:.1f},'.format(directions_DEG[index]), end=' ')
+    print('{:.1f},'.format(FFT_dBV_peaks[index]), end=' ')
+    print('{:.1f},'.format(centroid_frequencies[index]), end=' ')
+    print('{:.1f}]'.format(surface_velocities[index]))
