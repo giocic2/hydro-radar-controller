@@ -688,3 +688,4 @@ for element in directions_DEG:
     print('{:.1f},'.format(FFT_dBV_peaks[index]), end=' ')
     print('{:.1f},'.format(centroid_frequencies[index]), end=' ')
     print('{:.1f}]'.format(surface_velocities[index]))
+    index += 1
