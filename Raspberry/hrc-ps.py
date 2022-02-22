@@ -40,7 +40,7 @@ CHB_RANGE = 7 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 
 BANDWIDTH_THRESHOLD = 6 # dB
 WINDOWING = True # Set to 'False' to disable windowing before FFT computation
 ZERO_FORCING = True # Enable forcing FFT to zero, everywhere except between FREQUENCY_MIN and FREQUENCY_MAX
-FREQUENCY_MIN = 50 # Hz
+FREQUENCY_MIN = -1_000 # Hz
 FREQUENCY_MAX = 1_000 # Hz
 
 print("*** GRID SCAN SETTINGS ***")
