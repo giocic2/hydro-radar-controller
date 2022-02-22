@@ -618,6 +618,7 @@ while VCOfreq <= 24500:
             FFT_mV[maxBin:-1] = 0
         FFT_max = np.amax(FFT_mV)
         FFT_dBV = 20*np.log10(FFT_mV/1000)
+        print('FFT dBV max: ' + str(np.amax(FFT_dBV)))
         freqAxis = np.fft.fftshift(np.fft.fftfreq(freqBins_FFT)) # freqBins+1
         freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
         
