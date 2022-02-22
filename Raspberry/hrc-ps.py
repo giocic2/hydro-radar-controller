@@ -67,10 +67,10 @@ if REAL_TIME_MEAS == True:
 smoothingBins = int(round(SMOOTHING_WINDOW / (SAMPLING_FREQUENCY / freqBins_FFT)))
 print('Size of smoothing window (moving average): ' + str(smoothingBins) + ' bins')
 print('Threshold for detection: ' + str(FFT_THRESHOLD) + ' dBV')
-minBin = int(np.round(FREQUENCY_MIN / (SAMPLING_FREQUENCY/freqBins_FFT)))
+minBin = int(freqBins_FFT/2 + np.round(FREQUENCY_MIN / (SAMPLING_FREQUENCY/freqBins_FFT)))
 FREQUENCY_MIN = minBin * SAMPLING_FREQUENCY/freqBins_FFT
 print("Minimum frequency of interest: {:.1f} Hz".format(FREQUENCY_MIN))
-maxBin = int(np.round(FREQUENCY_MAX / (SAMPLING_FREQUENCY/freqBins_FFT)))
+maxBin = int(freqBins_FFT/2 + np.round(FREQUENCY_MAX / (SAMPLING_FREQUENCY/freqBins_FFT)))
 FREQUENCY_MAX = maxBin * SAMPLING_FREQUENCY/freqBins_FFT
 print("Maximum frequency of interest: {:.1f} Hz".format(FREQUENCY_MAX))
 
@@ -614,8 +614,8 @@ while VCOfreq <= 24500:
         FFT = np.fft.fftshift(np.fft.fft(complexSignal_mV, n = freqBins_FFT)) # FFT of complex signal
         FFT_mV = np.abs(1/(totalSamples)*FFT) # FFT magnitude
         if ZERO_FORCING == True:
-            FFT_mV[0:minBin] = 0
-            FFT_mV[maxBin:-1] = 0
+            FFT_mV[0:minBin] = 1e-10 # zero
+            FFT_mV[maxBin:-1] = 1e-10 # zero
         FFT_max = np.amax(FFT_mV)
         FFT_dBV = 20*np.log10(FFT_mV/1000)
         print('FFT dBV max: ' + str(np.amax(FFT_dBV)))
