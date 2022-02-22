@@ -68,10 +68,10 @@ smoothingBins = int(round(SMOOTHING_WINDOW / (SAMPLING_FREQUENCY / freqBins_FFT)
 print('Size of smoothing window (moving average): ' + str(smoothingBins) + ' bins')
 print('Threshold for detection: ' + str(FFT_THRESHOLD) + ' dBV')
 minBin = int(freqBins_FFT/2 + np.round(FREQUENCY_MIN / (SAMPLING_FREQUENCY/freqBins_FFT)))
-FREQUENCY_MIN = minBin * SAMPLING_FREQUENCY/freqBins_FFT
+FREQUENCY_MIN = -SAMPLING_FREQUENCY/2 + minBin * SAMPLING_FREQUENCY/freqBins_FFT
 print("Minimum frequency of interest: {:.1f} Hz".format(FREQUENCY_MIN))
 maxBin = int(freqBins_FFT/2 + np.round(FREQUENCY_MAX / (SAMPLING_FREQUENCY/freqBins_FFT)))
-FREQUENCY_MAX = maxBin * SAMPLING_FREQUENCY/freqBins_FFT
+FREQUENCY_MAX = -SAMPLING_FREQUENCY/2 + maxBin * SAMPLING_FREQUENCY/freqBins_FFT
 print("Maximum frequency of interest: {:.1f} Hz".format(FREQUENCY_MAX))
 
 ### ACCELEROMETER ###
