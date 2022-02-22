@@ -606,7 +606,7 @@ while VCOfreq <= 24500:
         print('Done.')
     
     if REAL_TIME_MEAS == True:
-        print('Real time measurements of surface velocity...', end = ' ')
+        print('Real time measurements of surface velocity...')
         # FFT computation
         complexSignal_mV = np.add(np.asarray(adc2mVChAMax), 1j*np.asarray(adc2mVChBMax))
         if WINDOWING == True:
@@ -651,6 +651,7 @@ while VCOfreq <= 24500:
                     if freqIndex >= (freqBins_FFT+1):
                         centroidDetected = True
                         break
+            print('Amplitude of FFT peak: {:.1f}'.format(np.amax(FFT_dBV)) + ' dBV')
             print('Amplitude of FFT peak (norm.smooth.): {:.1f}'.format(FFT_norm_dB_smooth_max) + ' dB')
             print('Bandwidth threshold (norm.smooth.): {:.1f}'.format(FFT_norm_dB_smooth_max - BANDWIDTH_THRESHOLD) + ' dB')
             print('Bandwidth: {:.1f}'.format(stopBand - startBand) + ' Hz')
