@@ -32,7 +32,7 @@ SAMPLING_FREQUENCY = 100e3 # Hz
 ACQUISITION_TIME = 1 # s
 FFT_RESOL = 1 # Hz
 REAL_TIME_MEAS = True # Set to 'False' to disable real time signal processing (FFT and surface velocity computation)
-RAW_DATA = True # Set to 'False' to disable saving of raw data in .csv format
+RAW_DATA = False # Set to 'False' to disable saving of raw data in .csv format
 SMOOTHING_WINDOW = 10 # Hz
 FFT_THRESHOLD = -80 # dBV
 CHA_RANGE = 7 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
@@ -40,7 +40,7 @@ CHB_RANGE = 7 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 
 BANDWIDTH_THRESHOLD = 6 # dB
 WINDOWING = True # Set to 'False' to disable windowing before FFT computation
 ZERO_FORCING = True # Enable forcing FFT to zero, everywhere except between FREQUENCY_MIN and FREQUENCY_MAX
-FREQUENCY_MIN = -1_000 # Hz
+FREQUENCY_MIN = 50 # Hz
 FREQUENCY_MAX = 1_000 # Hz
 
 print("*** GRID SCAN SETTINGS ***")
