@@ -681,11 +681,11 @@ assert_pico_ok(status["close"])
 print('Done.')
 print(status)
 print('Recap:')
-print('[DEG, dBV, Hz, m/s]')
+print('[DEG,\tdBV,\tHz,\tm/s]')
 index = 0
 for element in directions_DEG:
-    print('[{:.1f},'.format(directions_DEG[index]), end=' ')
-    print('{:.1f},'.format(FFT_dBV_peaks[index]), end=' ')
-    print('{:.1f},'.format(centroid_frequencies[index]), end=' ')
+    print('[{:.1f},'.format(directions_DEG[index]), end='\t')
+    print('{:.1f},'.format(FFT_dBV_peaks[index]), end='\t')
+    print('{:.1f},'.format(centroid_frequencies[index]), end='\t')
     print('{:.1f}]'.format(surface_velocities[index]))
     index += 1
