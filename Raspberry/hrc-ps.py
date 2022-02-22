@@ -680,12 +680,13 @@ status["close"] = ps.ps2000aCloseUnit(chandle)
 assert_pico_ok(status["close"])
 print('Done.')
 print(status)
-print('Recap:')
-print('[DEG,\tdBV,\tHz,\tm/s]')
-index = 0
-for element in directions_DEG:
-    print('[{:.1f},'.format(directions_DEG[index]), end='\t')
-    print('{:.1f},'.format(FFT_dBV_peaks[index]), end='\t')
-    print('{:.1f},'.format(centroid_frequencies[index]), end='\t')
-    print('{:.1f}]'.format(surface_velocities[index]))
-    index += 1
+if REAL_TIME_MEAS == True:
+    print('Recap:')
+    print('[DEG,\tdBV,\tHz,\tm/s]')
+    index = 0
+    for element in directions_DEG:
+        print('[{:.1f},'.format(directions_DEG[index]), end='\t')
+        print('{:.1f},'.format(FFT_dBV_peaks[index]), end='\t')
+        print('{:.1f},'.format(centroid_frequencies[index]), end='\t')
+        print('{:.1f}]'.format(surface_velocities[index]))
+        index += 1
