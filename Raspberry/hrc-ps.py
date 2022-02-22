@@ -37,10 +37,11 @@ SMOOTHING_WINDOW = 10 # Hz
 FFT_THRESHOLD = -80 # dBV
 CHA_RANGE = 6 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
 CHB_RANGE = 6 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
-FREQUENCY_MIN = -50_000 # Hz
-FREQUENCY_MAX = 50_000 # Hz
 BANDWIDTH_THRESHOLD = 6 # dB
 WINDOWING = True # Set to 'False' to disable windowing before FFT computation
+ZERO_FORCING = True # Enable forcing FFT to zero, everywhere except between FREQUENCY_MIN and FREQUENCY_MAX
+FREQUENCY_MIN = 50 # Hz
+FREQUENCY_MAX = 1_000 # Hz
 
 print("*** GRID SCAN SETTINGS ***")
 # Acquisition time
@@ -66,6 +67,12 @@ if REAL_TIME_MEAS == True:
 smoothingBins = int(round(SMOOTHING_WINDOW / (SAMPLING_FREQUENCY / freqBins_FFT)))
 print('Size of smoothing window (moving average): ' + str(smoothingBins) + ' bins')
 print('Threshold for detection: ' + str(FFT_THRESHOLD) + ' dBV')
+minBin = int(np.round(FREQUENCY_MIN / (SAMPLING_FREQUENCY/freqBins_FFT)))
+FREQUENCY_MIN = minBin * SAMPLING_FREQUENCY/freqBins_FFT
+print("Minimum frequency of interest: {:.1f} Hz".format(FREQUENCY_MIN))
+maxBin = int(np.round(FREQUENCY_MAX / (SAMPLING_FREQUENCY/freqBins_FFT)))
+FREQUENCY_MAX = maxBin * SAMPLING_FREQUENCY/freqBins_FFT
+print("Maximum frequency of interest: {:.1f} Hz".format(FREQUENCY_MAX))
 
 ### ACCELEROMETER ###
 
@@ -606,6 +613,9 @@ while VCOfreq <= 24500:
             complexSignal_mV = complexSignal_mV * np.hamming(totalSamples)
         FFT = np.fft.fftshift(np.fft.fft(complexSignal_mV, n = freqBins_FFT)) # FFT of complex signal
         FFT_mV = np.abs(1/(totalSamples)*FFT) # FFT magnitude
+        if ZERO_FORCING == True:
+            FFT_mV[0:minBin] = 0
+            FFT_mV[maxBin:-1] = 0
         FFT_max = np.amax(FFT_mV)
         FFT_dBV = 20*np.log10(FFT_mV/1000)
         freqAxis = np.fft.fftshift(np.fft.fftfreq(freqBins_FFT)) # freqBins+1
@@ -641,13 +651,13 @@ while VCOfreq <= 24500:
                     if freqIndex >= (freqBins_FFT+1):
                         centroidDetected = True
                         break
-            print('Center of Doppler centroid: {:.1f}'.format((stopBand + startBand)/2) + ' Hz')
-            print('Resulting surface velocity: {:.1f}'.format((3e8 * (stopBand + startBand)/2) / (2 * (VCOfreq * 1e6) * np.cos(np.deg2rad(directions_DEG[directionIndex]) * np.cos(tiltAngle_avg)))), ' m/s')
             print('Amplitude of FFT peak (norm.smooth.): {:.1f}'.format(FFT_norm_dB_smooth_max) + ' dB')
-            print('Bandwidth threshold: {:.1f}'.format(BANDWIDTH_THRESHOLD) + ' dB')
+            print('Bandwidth threshold (norm.smooth.): {:.1f}'.format(FFT_norm_dB_smooth_max - BANDWIDTH_THRESHOLD) + ' dB')
             print('Bandwidth: {:.1f}'.format(stopBand - startBand) + ' Hz')
             print('Bandwidth starts at {:.1f}'.format(startBand) + ' Hz')
             print('Bandwidth stops at {:.1f}'.format(stopBand) + ' Hz')
+            print('Center of Doppler centroid: {:.1f}'.format((stopBand + startBand)/2) + ' Hz')
+            print('Resulting surface velocity: {:.1f}'.format((3e8 * (stopBand + startBand)/2) / (2 * (VCOfreq * 1e6) * np.cos(np.deg2rad(directions_DEG[directionIndex]) * np.cos(tiltAngle_avg)))), ' m/s')
     elapsedTime = time.time() - startTime
     print('Acquisition completed. Elapsed time (block acquisition and data management): {:.1f}'.format(elapsedTime) + ' s.')
 # Stop the scope
