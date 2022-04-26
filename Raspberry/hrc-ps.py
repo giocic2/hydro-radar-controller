@@ -49,6 +49,7 @@ FREQUENCY_MAX = 1_000 # Hz
 ### STATISTICAL ANALYSIS SETTINGS ###
 STATISTICAL_ANALYSIS = True
 EPISODES = 10
+DETAILED_REPORT = True # Print surface velocities table on report
 
 print("*** GRID SCAN SETTINGS ***")
 # Acquisition time
@@ -56,10 +57,12 @@ print("Acquisition time (for each direction): ", ACQUISITION_TIME, ' s')
 # Sampling frequency
 if SAMPLING_FREQUENCY >= 125e6:
     timebase = round(log(500e6/SAMPLING_FREQUENCY,2))
-    print('Sampling frequency: {:,}'.format(1/(2**timebase/5)*1e8) + ' Hz')
+    SAMPLING_FREQUENCY = 1/(2**timebase/5)*1e8
+    print('Sampling frequency: {:,}'.format(SAMPLING_FREQUENCY) + ' Hz')
 else:
     timebase=round(62.5e6/SAMPLING_FREQUENCY+2)
-    print('Sampling frequency: {:,}'.format(62.5e6/(timebase-2)) + ' Hz')
+    SAMPLING_FREQUENCY = 62.5e6/(timebase-2)
+    print('Sampling frequency: {:,}'.format(SAMPLING_FREQUENCY) + ' Hz')
 samplingInterval = 1/SAMPLING_FREQUENCY
 totalSamples = round(ACQUISITION_TIME/samplingInterval)
 print('Number of total samples (for each channel): {:,}'.format(totalSamples))
@@ -68,18 +71,19 @@ print('Ch.A (IFI): ', CHA_RANGE)
 print('Ch.B (IFQ): ', CHB_RANGE)
 # FFT bins and resolution
 freqBins_FFT = int(2**np.ceil(np.log2(abs(SAMPLING_FREQUENCY/2/FFT_RESOL))))
-if REAL_TIME_MEAS == True:
-    print('FFT resolution: ' + str(SAMPLING_FREQUENCY / freqBins_FFT) + ' Hz')
-    print('FFT bins: ' + str(freqBins_FFT))
 smoothingBins = int(round(SMOOTHING_WINDOW / (SAMPLING_FREQUENCY / freqBins_FFT)))
-print('Size of smoothing window (moving average): ' + str(smoothingBins) + ' bins')
-print('Threshold for detection: ' + str(FFT_THRESHOLD) + ' dBV')
 minBin = int(freqBins_FFT/2 + np.round(FREQUENCY_MIN / (SAMPLING_FREQUENCY/freqBins_FFT)))
-FREQUENCY_MIN = -SAMPLING_FREQUENCY/2 + minBin * SAMPLING_FREQUENCY/freqBins_FFT
-print("Minimum frequency of interest: {:.1f} Hz".format(FREQUENCY_MIN))
 maxBin = int(freqBins_FFT/2 + np.round(FREQUENCY_MAX / (SAMPLING_FREQUENCY/freqBins_FFT)))
 FREQUENCY_MAX = -SAMPLING_FREQUENCY/2 + maxBin * SAMPLING_FREQUENCY/freqBins_FFT
-print("Maximum frequency of interest: {:.1f} Hz".format(FREQUENCY_MAX))
+FREQUENCY_MIN = -SAMPLING_FREQUENCY/2 + minBin * SAMPLING_FREQUENCY/freqBins_FFT
+if REAL_TIME_MEAS == True:
+    print('Real time measurements enabled.')
+    print('FFT resolution: ' + str(SAMPLING_FREQUENCY / freqBins_FFT) + ' Hz')
+    print('FFT bins: ' + str(freqBins_FFT))
+    print('Size of smoothing window (moving average): ' + str(smoothingBins) + ' bins')
+    print('Threshold for detection: ' + str(FFT_THRESHOLD) + ' dBV')
+    print("Minimum frequency of interest: {:.1f} Hz".format(FREQUENCY_MIN))
+    print("Maximum frequency of interest: {:.1f} Hz".format(FREQUENCY_MAX))
 
 ### ACCELEROMETER ###
 
@@ -269,7 +273,7 @@ LSB = 0b00001000 # TX full power
 # bit0: TW power reduction bit0
 # TW output power reduction factors [dB] : 0, 0.4, 0.8, 1.4, 2.5, 4, 6, 9
 
-print('BGT24MTR11 programming started...', end = ' ')
+print('BGT24MTR11 programming started...')
 spi0 = spidev.SpiDev()
 # Use of /dev/spidev0.0, SPI0 with CE0 not used.
 # SCLK: BOARD23
@@ -305,9 +309,9 @@ if scanningDirections != 1:
         directionIndex += 1
     directionIndex = 0 # reset
 # Array to save FFT peak amplitudes and frequencies
-FFT_dBV_peaks = np.zeros(scanningDirections)
-centroid_frequencies = np.zeros(scanningDirections)
-surface_velocities = np.zeros(scanningDirections)
+FFT_dBV_peaks = np.zeros((scanningDirections, EPISODES))
+centroid_frequencies = np.zeros((scanningDirections, EPISODES))
+surface_velocities_table = np.zeros((scanningDirections, EPISODES))
 
 ### PICOSCOPE ###
 
@@ -317,7 +321,7 @@ chandle = ctypes.c_int16()
 status = {}
 
 # Open 2000 series PicoScope
-print('Setting up PiscoScope 2206B unit...', end = ' ')
+print('Setting up PiscoScope 2206B unit...')
 # Returns handle to chandle for use in future API functions
 # First argument: number that uniquely identifies the scope (address of chandle)
 # Second argument:  first scope found (None)
@@ -381,7 +385,6 @@ assert_pico_ok(status["getTimebase2"])
 print('Done.')
 
 ### GRID SCAN ###
-surface_velocities_table = np.zeros((scanningDirections, EPISODES))
 for episodeNumber in range(EPISODES):
     print("Episode {:d} of {:d}:",format(episodeNumber, EPISODES))
     while VCOfreq <= 24500:
@@ -468,7 +471,7 @@ for episodeNumber in range(EPISODES):
         chipEnable.on()
 
         # ADF4158 programming
-        print('ADF4158 programming started...', end = ' ')
+        print('ADF4158 programming started...')
         spi0.open(0,0)
         spi0.max_speed_hz = 122000
         # CPOL=0, CPHA=1
@@ -494,7 +497,7 @@ for episodeNumber in range(EPISODES):
         # The scope stores data in internal buffer memory and then transfer it to the PC via USB.
         # The data is lost when a new run is started in the same segment.
         # For PicoScope 2206B the buffer memory is 32 MS, maximum sampling rate 500 MS/s.
-        print('Running block capture...', end = ' ')
+        print('Running block capture...')
         startTime = time.time()
         # Run block capture
         # handle = chandle
@@ -603,7 +606,7 @@ for episodeNumber in range(EPISODES):
         
         if RAW_DATA == True:
             # ChA raw samples
-            print('Saving ChA raw samples to .csv file...', end = ' ')
+            print('Saving ChA raw samples to .csv file...')
             samplesFileNameChA = timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChA.csv"
             completeFileNameChA = os.path.join('./data-acquired/raw-samples',samplesFileNameChA)
             with open(completeFileNameChA,'w') as file:
@@ -611,7 +614,7 @@ for episodeNumber in range(EPISODES):
                 writer.writerows(zip(adc2mVChAMax,timeAxis))
             print('Done.')
             # ChB raw samples
-            print('Saving ChB raw samples to .csv file...', end = ' ')
+            print('Saving ChB raw samples to .csv file...')
             samplesFileNameChB = timestamp + "__" + tiltAngle + "__" + antennaHeight_str + "__" + VCOfreq_str + "__ChB.csv"
             completeFileNameChB = os.path.join('./data-acquired/raw-samples',samplesFileNameChB)
             with open(completeFileNameChB,'w') as file:
@@ -632,7 +635,7 @@ for episodeNumber in range(EPISODES):
                 FFT_mV[maxBin:-1] = 1e-10 # zero
             FFT_max = np.amax(FFT_mV)
             FFT_dBV = 20*np.log10(FFT_mV/1000)
-            FFT_dBV_peaks[directionIndex] = np.amax(FFT_dBV)
+            FFT_dBV_peaks[episodeNumber, directionIndex] = np.amax(FFT_dBV)
             freqAxis = np.fft.fftshift(np.fft.fftfreq(freqBins_FFT)) # freqBins+1
             freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
             
@@ -666,6 +669,8 @@ for episodeNumber in range(EPISODES):
                         if freqIndex >= (freqBins_FFT+1):
                             centroidDetected = True
                             break
+                centroid_frequencies[episodeNumber, directionIndex] = (stopBand + startBand)/2
+                surface_velocities_table[episodeNumber, directionIndex] = (3e8 * (stopBand + startBand)/2) / (2 * (VCOfreq * 1e6) * np.cos(np.deg2rad(directions_DEG[directionIndex]) * np.cos(tiltAngle_avg)))
                 print('Amplitude of FFT peak: {:.1f}'.format(np.amax(FFT_dBV)) + ' dBV')
                 print('Amplitude of FFT peak (norm.smooth.): {:.1f}'.format(FFT_norm_dB_smooth_max) + ' dB')
                 print('Bandwidth threshold (norm.smooth.): {:.1f}'.format(FFT_norm_dB_smooth_max - BANDWIDTH_THRESHOLD) + ' dB')
@@ -674,36 +679,35 @@ for episodeNumber in range(EPISODES):
                 print('Bandwidth stops at {:.1f}'.format(stopBand) + ' Hz')
                 print('Center of Doppler centroid: {:.1f}'.format((stopBand + startBand)/2) + ' Hz')
                 print('Resulting surface velocity: {:.1f}'.format((3e8 * (stopBand + startBand)/2) / (2 * (VCOfreq * 1e6) * np.cos(np.deg2rad(directions_DEG[directionIndex]) * np.cos(tiltAngle_avg)))), ' m/s')
-                centroid_frequencies[directionIndex] = (stopBand + startBand)/2
-                surface_velocities[directionIndex] = (3e8 * (stopBand + startBand)/2) / (2 * (VCOfreq * 1e6) * np.cos(np.deg2rad(directions_DEG[directionIndex]) * np.cos(tiltAngle_avg)))
-                surface_velocities_table[episodeNumber, directionIndex] = surface_velocities[directionIndex]
+
         elapsedTime = time.time() - startTime
         print('Acquisition completed. Elapsed time (block acquisition and data management): {:.1f}'.format(elapsedTime) + ' s.')
         directionIndex += 1
     if REAL_TIME_MEAS == True:
         print('Recap:')
-        print('[DEG,\tdBV,\tHz,\tm/s]')
+        print('[EP.,\tDEG,\tdBV,\tHz,\tm/s]')
         index = 0
         for element in directions_DEG:
-            print('[{:.1f},'.format(directions_DEG[index]), end='\t')
-            print('{:.1f},'.format(FFT_dBV_peaks[index]), end='\t')
-            print('{:.1f},'.format(centroid_frequencies[index]), end='\t')
-            print('{:.1f}]'.format(surface_velocities[index]))
+            print('[{:d},'.format(episodeNumber+1), end='\t')
+            print('{:.1f},'.format(directions_DEG[index]), end='\t')
+            print('{:.1f},'.format(FFT_dBV_peaks[episodeNumber, index]), end='\t')
+            print('{:.1f},'.format(centroid_frequencies[episodeNumber, index]), end='\t')
+            print('{:.1f}]'.format(surface_velocities_table[episodeNumber, directionIndex]))
             index += 1
-    if STATISTICAL_ANALYSIS == True:
-        print('Statistical analysis (episode {:d} of {:d}):',format(episodeNumber, EPISODES))
-        print('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]')
-        index = 0
-        for element in directions_DEG:
-            shapiro_test = stats.shapiro(surface_velocities_table[0:episodeNumber,element])
-            print('[{:.1f},'.format(directions_DEG[index]), end='\t')
-            print('{:.1f},'.format(np.mean(surface_velocities_table[0:episodeNumber,element])), end='\t')
-            print('{:.1f},'.format(np.std(surface_velocities_table[0:episodeNumber,element], ddof=1)), end='\t')
-            print('{:.1f},'.format(shapiro_test.statistic), end='\t')
-            print('{:.1f}]'.format(shapiro_test.pvalue))
-            index += 1
+        if STATISTICAL_ANALYSIS == True:
+            print('Statistical analysis (episode {:d} of {:d}):',format(episodeNumber+1, EPISODES))
+            print('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]')
+            index = 0
+            for element in directions_DEG:
+                shapiro_test = stats.shapiro(surface_velocities_table[0:episodeNumber,element])
+                print('[{:.1f},'.format(directions_DEG[index]), end='\t')
+                print('{:.1f},'.format(np.mean(surface_velocities_table[0:episodeNumber,element])), end='\t')
+                print('{:.1f},'.format(np.std(surface_velocities_table[0:episodeNumber,element], ddof=1)), end='\t')
+                print('{:.1f},'.format(shapiro_test.statistic), end='\t')
+                print('{:.1f}]'.format(shapiro_test.pvalue))
+                index += 1
 # Stop the scope
-print('Closing the scope...', end = ' ')
+print('Closing the scope...')
 # handle = chandle
 status["stop"] = ps.ps2000aStop(chandle)
 assert_pico_ok(status["stop"])
@@ -713,3 +717,68 @@ status["close"] = ps.ps2000aCloseUnit(chandle)
 assert_pico_ok(status["close"])
 print('Done.')
 print(status)
+
+# Generate report
+print('Generating report...')
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+reportFileName = timestamp + "_report.txt"
+completeFileName = os.path.join('./data-acquired/raw-samples', reportFileName)
+with open(completeFileName,'w') as file:
+    file.write('Timestamp: {}\n'.format(timestamp))
+    file.write('### RADAR SETUP ###\n')
+    file.write('Pivot height: {:.2f} m (vertical distance between pivot and ground level)\n'.format(PIVOT_HEIGHT))
+    file.write('Antenna center position: {:.2f} m (Distance between pivot and center of RX antenna)\n'.format(ANTENNA_CENTER_POSITION))
+    file.write('Max scan angle: {:.1f} deg (Distance between pivot and center of RX antenna)\n'.format(np.rad2deg(MAX_SCAN_ANGLE)))
+    file.write("Estimated tilt angle [deg]: {0:.1f}\n".format(np.rad2deg(tiltAngle_avg)))
+    file.write("Vertical distance between RX antenna and ground level: {0:.2f} m\n".format(antennaHeight))
+    file.write("Distance between RX antenna and ground level @ beam direction: {0:.2f} m\n".format(antennaHeight / np.sin(tiltAngle_avg)))
+    file.write("Projection of that distance on ground level: {0:.2f} m\n".format(antennaHeight / np.tan(tiltAngle_avg)))
+    file.write("Horizontal swath @ ground level: {0:.2f} m\n".format(maxSwath))
+    file.write('### ACQUISITION SETTINGS ###\n')
+    file.write('Scanning directions: {:d}\n'.format(scanningDirections))
+    file.write('Raw data: {}\n'.format(RAW_DATA))
+    file.write('Sampling frequency: {:,} Hz\n'.format(SAMPLING_FREQUENCY))
+    file.write('Acquisition time: {:.1f} s\n'.format(ACQUISITION_TIME))
+    file.write('Total number of samples: {:d}\n'.format(totalSamples))
+    file.write('Channel A (IFI) range: {:d} ([1:10] V: 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20 V)\n'.format(CHA_RANGE))
+    file.write('Channel B (IFQ) range: {:d} ([1:10] V: 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20 V)\n'.format(CHB_RANGE))
+    file.write('Real time measurements: {} (FFT and surface velocity computation)\n'.format(REAL_TIME_MEAS))
+    file.write('FFT resolution: {:d} Hz\n'.format(FFT_RESOL))
+    file.write('FFT threshold: {:d} dBV\n'.format(FFT_THRESHOLD))
+    file.write('Windowing (hamming): {} (before FFT computation)\n'.format(WINDOWING))
+    file.write('Smoothing window size (moving average): {:d} Hz\n'.format(SMOOTHING_WINDOW))
+    file.write('Threshold for Doppler centroid bandwidth: {:d} dB\n'.format(BANDWIDTH_THRESHOLD))
+    file.write('Zero forcing: {} (Enable forcing FFT to zero, everywhere except between FREQUENCY_MIN and FREQUENCY_MAX)\n'.format(ZERO_FORCING))
+    file.write('Minimum frequency of interest: {:d} Hz\n'.format(FREQUENCY_MIN))
+    file.write('Maximum frequency of interest: {:d} Hz\n'.format(FREQUENCY_MAX))
+    file.write('### STATISTICAL ANALYSIS SETTINGS ###\n')
+    file.write('Statystical analysis: {}\n'.format(STATISTICAL_ANALYSIS))
+    file.write('Number of episodes: {:d}\n'.format(EPISODES))
+    file.write('\n')
+    if REAL_TIME_MEAS == True:
+        if DETAILED_REPORT == True:
+            file.write('### SURFACE VELOCITY TABLE ###\n')
+            print('[EP.,\tDEG,\tdBV,\tHz,\tm/s]\n')
+            index = 0
+            for episode in range(EPISODES):
+                for directon in directions_DEG:
+                    print('[{:d},'.format(episode+1), end='\t')
+                    print('{:.1f},'.format(directions_DEG[index]), end='\t')
+                    print('{:.1f},'.format(FFT_dBV_peaks[index]), end='\t')
+                    print('{:.1f},'.format(centroid_frequencies[index]), end='\t')
+                    print('{:.1f}]'.format(surface_velocities_table[index]))
+                    index += 1
+        if STATISTICAL_ANALYSIS == True:
+            file.write('### STATISTICAL ANALYSIS (@ episode {:d} of {:d}) ###\n',format(episodeNumber+1, EPISODES))
+            file.write('[scanning angle, mean value, std.dev., S.W. test statistic, S.W. test p-value]\n')
+            file.write('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]\n')
+            index = 0
+            for element in directions_DEG:
+                shapiro_test = stats.shapiro(surface_velocities_table[0:episodeNumber,element])
+                file.write('[{:.1f},'.format(directions_DEG[index]), end='\t')
+                file.write('{:.1f},'.format(np.mean(surface_velocities_table[0:episodeNumber,element])), end='\t')
+                file.write('{:.1f},'.format(np.std(surface_velocities_table[0:episodeNumber,element], ddof=1)), end='\t')
+                file.write('{:.1f},'.format(shapiro_test.statistic), end='\t')
+                file.write('{:.2f}]\n'.format(shapiro_test.pvalue))
+                index += 1
+print('Done.')
