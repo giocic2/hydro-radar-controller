@@ -695,7 +695,8 @@ for episodeNumber in range(EPISODES):
         index = 0
         for element in directions_DEG:
             print('[{:.1f},'.format(directions_DEG[index]), end='\t')
-            print('{:.1f},'.format(FFT_dBV_peaks[index]), end='\t')
+            print('{:.1f},'.format(np.mean(surface_velocities_table[0:episodeNumber,index])), end='\t')
+            print('{:.1f},'.format(np.mean(surface_velocities_table[0:episodeNumber,index])), end='\t')
             print('{:.1f},'.format(centroid_frequencies[index]), end='\t')
             print('{:.1f}]'.format(surface_velocities[index]))
             index += 1
