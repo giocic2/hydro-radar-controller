@@ -758,15 +758,15 @@ with open(completeFileName,'w') as file:
     if REAL_TIME_MEAS == True:
         if DETAILED_REPORT == True:
             file.write('### SURFACE VELOCITY TABLE ###\n')
-            print('[EP.,\tDEG,\tdBV,\tHz,\tm/s]\n')
+            file.write('[EP.,\tDEG,\tdBV,\tHz,\tm/s]\n')
             index = 0
             for episode in range(EPISODES):
                 for directon in directions_DEG:
-                    print('[{:d},'.format(episode+1), end='\t')
-                    print('{:.1f},'.format(directions_DEG[index]), end='\t')
-                    print('{:.1f},'.format(FFT_dBV_peaks[index]), end='\t')
-                    print('{:.1f},'.format(centroid_frequencies[index]), end='\t')
-                    print('{:.1f}]'.format(surface_velocities_table[index]))
+                    file.write('[{:d},\t'.format(episode+1))
+                    file.write('{:.1f},\t'.format(directions_DEG[index]))
+                    file.write('{:.1f},\t'.format(FFT_dBV_peaks[index]))
+                    file.write('{:.1f},\t'.format(centroid_frequencies[index]))
+                    file.write('{:.1f}]\n'.format(surface_velocities_table[index]))
                     index += 1
         if STATISTICAL_ANALYSIS == True:
             file.write('### STATISTICAL ANALYSIS (@ episode {:d} of {:d}) ###\n',format(episodeNumber+1, EPISODES))
