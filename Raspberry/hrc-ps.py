@@ -21,6 +21,7 @@ import adafruit_adxl34x
 import busio
 import board
 from struct import unpack
+from scipy import stats
 
 ### ACQUISITION SETTINGS ###
 
@@ -694,11 +695,12 @@ for episodeNumber in range(EPISODES):
         print('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]')
         index = 0
         for element in directions_DEG:
+            shapiro_test = stats.shapiro(surface_velocities_table[0:episodeNumber,element])
             print('[{:.1f},'.format(directions_DEG[index]), end='\t')
-            print('{:.1f},'.format(np.mean(surface_velocities_table[0:episodeNumber,index])), end='\t')
-            print('{:.1f},'.format(np.mean(surface_velocities_table[0:episodeNumber,index])), end='\t')
-            print('{:.1f},'.format(centroid_frequencies[index]), end='\t')
-            print('{:.1f}]'.format(surface_velocities[index]))
+            print('{:.1f},'.format(np.mean(surface_velocities_table[0:episodeNumber,element])), end='\t')
+            print('{:.1f},'.format(np.std(surface_velocities_table[0:episodeNumber,element], ddof=1)), end='\t')
+            print('{:.1f},'.format(shapiro_test.statistic), end='\t')
+            print('{:.1f}]'.format(shapiro_test.pvalue))
             index += 1
 # Stop the scope
 print('Closing the scope...', end = ' ')
