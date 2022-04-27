@@ -694,15 +694,15 @@ for episodeNumber in range(EPISODES):
             print('{:.1f},'.format(centroid_frequencies[episodeNumber, index]), end='\t')
             print('{:.1f}]'.format(surface_velocities_table[episodeNumber, directionIndex]))
             index += 1
-        if STATISTICAL_ANALYSIS == True:
+        if STATISTICAL_ANALYSIS == True and episodeNumber >= 1:
             print('Statistical analysis (episode {:d} of {:d}):'.format(episodeNumber+1, EPISODES))
             print('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]')
             index = 0
             for element in directions_DEG:
-                shapiro_test = stats.shapiro(surface_velocities_table[0:episodeNumber,element])
+                shapiro_test = stats.shapiro(surface_velocities_table[:episodeNumber,element])
                 print('[{:.1f},'.format(directions_DEG[index]), end='\t')
-                print('{:.1f},'.format(np.mean(surface_velocities_table[0:episodeNumber,element])), end='\t')
-                print('{:.1f},'.format(np.std(surface_velocities_table[0:episodeNumber,element], ddof=1)), end='\t')
+                print('{:.1f},'.format(np.mean(surface_velocities_table[:episodeNumber,element])), end='\t')
+                print('{:.1f},'.format(np.std(surface_velocities_table[:episodeNumber,element], ddof=1)), end='\t')
                 print('{:.1f},'.format(shapiro_test.statistic), end='\t')
                 print('{:.1f}]'.format(shapiro_test.pvalue))
                 index += 1
