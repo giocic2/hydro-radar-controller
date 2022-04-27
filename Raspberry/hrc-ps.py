@@ -686,26 +686,22 @@ for episodeNumber in range(EPISODES):
     if REAL_TIME_MEAS == True:
         print('Recap:')
         print('[EP.,\tDEG,\tdBV,\tHz,\tm/s]')
-        index = 0
-        for element in directions_DEG:
+        for direction in directions_DEG:
             print('[{:d},'.format(episodeNumber+1), end='\t')
-            print('{:.1f},'.format(directions_DEG[index]), end='\t')
-            print('{:.1f},'.format(FFT_dBV_peaks[episodeNumber, index]), end='\t')
-            print('{:.1f},'.format(centroid_frequencies[episodeNumber, index]), end='\t')
-            print('{:.1f}]'.format(surface_velocities_table[episodeNumber, directionIndex]))
-            index += 1
+            print('{:.1f},'.format(directions_DEG[direction]), end='\t')
+            print('{:.1f},'.format(FFT_dBV_peaks[episodeNumber, direction]), end='\t')
+            print('{:.1f},'.format(centroid_frequencies[episodeNumber, direction]), end='\t')
+            print('{:.1f}]'.format(surface_velocities_table[episodeNumber, direction]))
         if STATISTICAL_ANALYSIS == True and episodeNumber >= 1:
             print('Statistical analysis (episode {:d} of {:d}):'.format(episodeNumber+1, EPISODES))
             print('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]')
-            index = 0
-            for element in directions_DEG:
+            for direction in directions_DEG:
                 shapiro_test = stats.shapiro(surface_velocities_table[:episodeNumber,element])
-                print('[{:.1f},'.format(directions_DEG[index]), end='\t')
-                print('{:.1f},'.format(np.mean(surface_velocities_table[:episodeNumber,element])), end='\t')
-                print('{:.1f},'.format(np.std(surface_velocities_table[:episodeNumber,element], ddof=1)), end='\t')
+                print('[{:.1f},'.format(directions_DEG[direction]), end='\t')
+                print('{:.1f},'.format(np.mean(surface_velocities_table[:episodeNumber,direction])), end='\t')
+                print('{:.1f},'.format(np.std(surface_velocities_table[:episodeNumber,direction], ddof=1)), end='\t')
                 print('{:.1f},'.format(shapiro_test.statistic), end='\t')
                 print('{:.1f}]'.format(shapiro_test.pvalue))
-                index += 1
 # Stop the scope
 print('Closing the scope...')
 # handle = chandle
