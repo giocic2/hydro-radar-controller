@@ -683,25 +683,25 @@ for episodeNumber in range(EPISODES):
         elapsedTime = time.time() - startTime
         print('Acquisition completed. Elapsed time (block acquisition and data management): {:.1f}'.format(elapsedTime) + ' s.')
         directionIndex += 1
-    if REAL_TIME_MEAS == True:
-        print('Recap:')
-        print('[EP.,\tDEG,\tdBV,\tHz,\tm/s]')
-        for direction in range(scanningDirections):
-            print('[{:d},'.format(episodeNumber+1), end='\t')
-            print('{:.1f},'.format(directions_DEG[direction]), end='\t')
-            print('{:.1f},'.format(FFT_dBV_peaks[episodeNumber, direction]), end='\t')
-            print('{:.1f},'.format(centroid_frequencies[episodeNumber, direction]), end='\t')
-            print('{:.1f}]'.format(surface_velocities_table[episodeNumber, direction]))
-        if STATISTICAL_ANALYSIS == True and episodeNumber >= 2:
-            print('Statistical analysis (episode {:d} of {:d}):'.format(episodeNumber+1, EPISODES))
-            print('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]')
+        if REAL_TIME_MEAS == True:
+            print('Recap:')
+            print('[EP.,\tDEG,\tdBV,\tHz,\tm/s]')
             for direction in range(scanningDirections):
-                shapiro_test = stats.shapiro(surface_velocities_table[:episodeNumber,direction])
-                print('[{:.1f},'.format(directions_DEG[direction]), end='\t')
-                print('{:.1f},'.format(np.mean(surface_velocities_table[:episodeNumber,direction])), end='\t')
-                print('{:.1f},'.format(np.std(surface_velocities_table[:episodeNumber,direction], ddof=1)), end='\t')
-                print('{:.1f},'.format(shapiro_test.statistic), end='\t')
-                print('{:.1f}]'.format(shapiro_test.pvalue))
+                print('[{:d},'.format(episodeNumber+1), end='\t')
+                print('{:.1f},'.format(directions_DEG[direction]), end='\t')
+                print('{:.1f},'.format(FFT_dBV_peaks[episodeNumber, direction]), end='\t')
+                print('{:.1f},'.format(centroid_frequencies[episodeNumber, direction]), end='\t')
+                print('{:.1f}]'.format(surface_velocities_table[episodeNumber, direction]))
+            if STATISTICAL_ANALYSIS == True and episodeNumber >= 2:
+                print('Statistical analysis (episode {:d} of {:d}):'.format(episodeNumber+1, EPISODES))
+                print('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]')
+                for direction in range(scanningDirections):
+                    shapiro_test = stats.shapiro(surface_velocities_table[:episodeNumber,direction])
+                    print('[{:.1f},'.format(directions_DEG[direction]), end='\t')
+                    print('{:.1f},'.format(np.mean(surface_velocities_table[:episodeNumber,direction])), end='\t')
+                    print('{:.1f},'.format(np.std(surface_velocities_table[:episodeNumber,direction], ddof=1)), end='\t')
+                    print('{:.1f},'.format(shapiro_test.statistic), end='\t')
+                    print('{:.1f}]'.format(shapiro_test.pvalue))
 # Stop the scope
 print('Closing the scope...')
 # handle = chandle
