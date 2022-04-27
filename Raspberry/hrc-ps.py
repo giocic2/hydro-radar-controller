@@ -703,6 +703,7 @@ for episodeNumber in range(EPISODES):
                     print('{:.1f},'.format(shapiro_test.statistic), end='\t')
                     print('{:.1f}]'.format(shapiro_test.pvalue))
     thisDirection = 1
+    VCOfreq = 23500
 # Stop the scope
 print('Closing the scope...')
 # handle = chandle
