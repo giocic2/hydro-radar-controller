@@ -309,9 +309,9 @@ if scanningDirections != 1:
         directionIndex += 1
     directionIndex = 0 # reset
 # Array to save FFT peak amplitudes and frequencies
-FFT_dBV_peaks = np.zeros((scanningDirections, EPISODES))
-centroid_frequencies = np.zeros((scanningDirections, EPISODES))
-surface_velocities_table = np.zeros((scanningDirections, EPISODES))
+FFT_dBV_peaks = np.zeros((EPISODES, scanningDirections))
+centroid_frequencies = np.zeros((EPISODES, scanningDirections))
+surface_velocities_table = np.zeros((EPISODES, scanningDirections))
 
 ### PICOSCOPE ###
 
