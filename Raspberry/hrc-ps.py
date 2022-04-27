@@ -680,19 +680,18 @@ for episodeNumber in range(EPISODES):
                 print('Bandwidth stops at {:.1f}'.format(stopBand) + ' Hz')
                 print('Center of Doppler centroid: {:.1f}'.format((stopBand + startBand)/2) + ' Hz')
                 print('Resulting surface velocity: {:.1f}'.format((3e8 * (stopBand + startBand)/2) / (2 * (VCOfreq * 1e6) * np.cos(np.deg2rad(directions_DEG[directionIndex]) * np.cos(tiltAngle_avg)))), ' m/s')
-
         elapsedTime = time.time() - startTime
         print('Acquisition completed. Elapsed time (block acquisition and data management): {:.1f}'.format(elapsedTime) + ' s.')
-        if REAL_TIME_MEAS == True:
-            print('Recap:')
-            print('[EP.,\tDEG,\tdBV,\tHz,\tm/s]')
-            for direction in range(scanningDirections):
-                print('[{:d},'.format(episodeNumber+1), end='\t')
-                print('{:.1f},'.format(directions_DEG[direction]), end='\t')
-                print('{:.1f},'.format(FFT_dBV_peaks[episodeNumber, direction]), end='\t')
-                print('{:.1f},'.format(centroid_frequencies[episodeNumber, direction]), end='\t')
-                print('{:.1f}]'.format(surface_velocities_table[episodeNumber, direction]))
+        directionIndex += 1
     if REAL_TIME_MEAS == True:
+        print('Recap:')
+        print('[EP.,\tDEG,\tdBV,\tHz,\tm/s]')
+        for direction in range(scanningDirections):
+            print('[{:d},'.format(episodeNumber+1), end='\t')
+            print('{:.1f},'.format(directions_DEG[direction]), end='\t')
+            print('{:.1f},'.format(FFT_dBV_peaks[episodeNumber, direction]), end='\t')
+            print('{:.1f},'.format(centroid_frequencies[episodeNumber, direction]), end='\t')
+            print('{:.1f}]'.format(surface_velocities_table[episodeNumber, direction]))
         if STATISTICAL_ANALYSIS == True and episodeNumber >= 2:
             print('Statistical analysis (episode {:d} of {:d}):'.format(episodeNumber+1, EPISODES))
             print('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]')
@@ -703,7 +702,6 @@ for episodeNumber in range(EPISODES):
                 print('{:.1f},'.format(np.std(surface_velocities_table[:episodeNumber+1,direction], ddof=1)), end='\t')
                 print('{:.1f},'.format(shapiro_test.statistic), end='\t')
                 print('{:.1f}]'.format(shapiro_test.pvalue))
-        directionIndex += 1
     thisDirection = 1
     VCOfreq = 23500
     directionIndex = 0
