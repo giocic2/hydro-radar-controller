@@ -701,7 +701,7 @@ for episodeNumber in range(EPISODES):
                 print('{:.1f},'.format(np.mean(surface_velocities_table[:episodeNumber+1,direction])), end='\t')
                 print('{:.1f},'.format(np.std(surface_velocities_table[:episodeNumber+1,direction], ddof=1)), end='\t')
                 print('{:.1f},'.format(shapiro_test.statistic), end='\t')
-                print('{:.1f}]'.format(shapiro_test.pvalue))
+                print('{:.3f}]'.format(shapiro_test.pvalue))
     thisDirection = 1
     VCOfreq = 23500
     directionIndex = 0
@@ -775,5 +775,5 @@ with open(completeFileName,'w') as file:
                 file.write('{:.1f},\t'.format(np.mean(surface_velocities_table[:episodeNumber+1,element])))
                 file.write('{:.1f},\t'.format(np.std(surface_velocities_table[:episodeNumber+1,element], ddof=1)))
                 file.write('{:.1f},\t'.format(shapiro_test.statistic))
-                file.write('{:.2f}]\n'.format(shapiro_test.pvalue))
+                file.write('{:.3f}]\n'.format(shapiro_test.pvalue))
 print('Done.')
