@@ -682,7 +682,6 @@ for episodeNumber in range(EPISODES):
 
         elapsedTime = time.time() - startTime
         print('Acquisition completed. Elapsed time (block acquisition and data management): {:.1f}'.format(elapsedTime) + ' s.')
-        directionIndex += 1
         if REAL_TIME_MEAS == True:
             print('Recap:')
             print('[EP.,\tDEG,\tdBV,\tHz,\tm/s]')
@@ -702,8 +701,10 @@ for episodeNumber in range(EPISODES):
                     print('{:.1f},'.format(np.std(surface_velocities_table[:episodeNumber,direction], ddof=1)), end='\t')
                     print('{:.1f},'.format(shapiro_test.statistic), end='\t')
                     print('{:.1f}]'.format(shapiro_test.pvalue))
+        directionIndex += 1
     thisDirection = 1
     VCOfreq = 23500
+    directionIndex = 0
 # Stop the scope
 print('Closing the scope...')
 # handle = chandle
