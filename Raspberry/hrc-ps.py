@@ -759,7 +759,7 @@ with open(completeFileName,'w') as file:
             for episode in range(EPISODES):
                 for directon in range(scanningDirections):
                     file.write('[{:d},\t'.format(episode+1))
-                    file.write('{:.1f},\t'.format(directions_DEG[episode,direction]))
+                    file.write('{:.1f},\t'.format(directions_DEG[direction]))
                     file.write('{:.1f},\t'.format(FFT_dBV_peaks[episode,direction]))
                     file.write('{:.1f},\t'.format(centroid_frequencies[episode,direction]))
                     file.write('{:.1f}]\n'.format(surface_velocities_table[episode,direction]))
