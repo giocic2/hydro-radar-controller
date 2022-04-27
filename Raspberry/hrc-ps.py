@@ -697,10 +697,10 @@ for episodeNumber in range(EPISODES):
             print('Statistical analysis (episode {:d} of {:d}):'.format(episodeNumber+1, EPISODES))
             print('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]')
             for direction in range(scanningDirections):
-                shapiro_test = stats.shapiro(surface_velocities_table[:episodeNumber,direction])
+                shapiro_test = stats.shapiro(surface_velocities_table[:episodeNumber+1,direction])
                 print('[{:.1f},'.format(directions_DEG[direction]), end='\t')
-                print('{:.1f},'.format(np.mean(surface_velocities_table[:episodeNumber,direction])), end='\t')
-                print('{:.1f},'.format(np.std(surface_velocities_table[:episodeNumber,direction], ddof=1)), end='\t')
+                print('{:.1f},'.format(np.mean(surface_velocities_table[:episodeNumber+1,direction])), end='\t')
+                print('{:.1f},'.format(np.std(surface_velocities_table[:episodeNumber+1,direction], ddof=1)), end='\t')
                 print('{:.1f},'.format(shapiro_test.statistic), end='\t')
                 print('{:.1f}]'.format(shapiro_test.pvalue))
         directionIndex += 1
@@ -772,10 +772,10 @@ with open(completeFileName,'w') as file:
             file.write('[scanning angle, mean value, std.dev., S.W. test statistic, S.W. test p-value]\n')
             file.write('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]\n')
             for element in range(scanningDirections):
-                shapiro_test = stats.shapiro(surface_velocities_table[0:episodeNumber,element])
+                shapiro_test = stats.shapiro(surface_velocities_table[:episodeNumber+1,element])
                 file.write('[{:.1f},'.format(directions_DEG[element]), end='\t')
-                file.write('{:.1f},'.format(np.mean(surface_velocities_table[0:episodeNumber,element])), end='\t')
-                file.write('{:.1f},'.format(np.std(surface_velocities_table[0:episodeNumber,element], ddof=1)), end='\t')
+                file.write('{:.1f},'.format(np.mean(surface_velocities_table[:episodeNumber+1,element])), end='\t')
+                file.write('{:.1f},'.format(np.std(surface_velocities_table[:episodeNumber+1,element], ddof=1)), end='\t')
                 file.write('{:.1f},'.format(shapiro_test.statistic), end='\t')
                 file.write('{:.2f}]\n'.format(shapiro_test.pvalue))
 print('Done.')
