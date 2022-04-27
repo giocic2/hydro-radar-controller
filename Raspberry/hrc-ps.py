@@ -741,8 +741,8 @@ with open(completeFileName,'w') as file:
     file.write('Sampling frequency: {:,} Hz\n'.format(SAMPLING_FREQUENCY))
     file.write('Acquisition time: {:.1f} s\n'.format(ACQUISITION_TIME))
     file.write('Total number of samples: {:d}\n'.format(totalSamples))
-    file.write('Channel A (IFI) range: {:d} ([1:10] V: 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20 V)\n'.format(CHA_RANGE))
-    file.write('Channel B (IFQ) range: {:d} ([1:10] V: 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20 V)\n'.format(CHB_RANGE))
+    file.write('Channel A (IFI) range: {:d} ([1:10]: 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20 V)\n'.format(CHA_RANGE))
+    file.write('Channel B (IFQ) range: {:d} ([1:10]: 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20 V)\n'.format(CHB_RANGE))
     file.write('Real time measurements: {} (FFT and surface velocity computation)\n'.format(REAL_TIME_MEAS))
     file.write('FFT resolution: {:d} Hz\n'.format(FFT_RESOL))
     file.write('FFT threshold: {:d} dBV\n'.format(FFT_THRESHOLD))
@@ -761,7 +761,7 @@ with open(completeFileName,'w') as file:
             file.write('### SURFACE VELOCITY TABLE ###\n')
             file.write('[EP.,\tDEG,\tdBV,\tHz,\tm/s]\n')
             for episode in range(EPISODES):
-                for directon in range(scanningDirections):
+                for direction in range(scanningDirections):
                     file.write('[{:d},\t'.format(episode+1))
                     file.write('{:.1f},\t'.format(directions_DEG[direction]))
                     file.write('{:.1f},\t'.format(FFT_dBV_peaks[episode,direction]))
