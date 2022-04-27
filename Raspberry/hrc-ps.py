@@ -686,7 +686,7 @@ for episodeNumber in range(EPISODES):
     if REAL_TIME_MEAS == True:
         print('Recap:')
         print('[EP.,\tDEG,\tdBV,\tHz,\tm/s]')
-        for direction in directions_DEG:
+        for direction in range(scanningDirections):
             print('[{:d},'.format(episodeNumber+1), end='\t')
             print('{:.1f},'.format(directions_DEG[direction]), end='\t')
             print('{:.1f},'.format(FFT_dBV_peaks[episodeNumber, direction]), end='\t')
@@ -695,8 +695,8 @@ for episodeNumber in range(EPISODES):
         if STATISTICAL_ANALYSIS == True and episodeNumber >= 1:
             print('Statistical analysis (episode {:d} of {:d}):'.format(episodeNumber+1, EPISODES))
             print('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]')
-            for direction in directions_DEG:
-                shapiro_test = stats.shapiro(surface_velocities_table[:episodeNumber,element])
+            for direction in range(scanningDirections):
+                shapiro_test = stats.shapiro(surface_velocities_table[:episodeNumber,direction])
                 print('[{:.1f},'.format(directions_DEG[direction]), end='\t')
                 print('{:.1f},'.format(np.mean(surface_velocities_table[:episodeNumber,direction])), end='\t')
                 print('{:.1f},'.format(np.std(surface_velocities_table[:episodeNumber,direction], ddof=1)), end='\t')
