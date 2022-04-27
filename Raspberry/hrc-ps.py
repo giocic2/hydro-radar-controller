@@ -48,7 +48,7 @@ FREQUENCY_MAX = 1_000 # Hz
 
 ### STATISTICAL ANALYSIS SETTINGS ###
 STATISTICAL_ANALYSIS = True
-EPISODES = 5
+EPISODES = 5 # at least 3
 DETAILED_REPORT = True # Print surface velocities table on report
 
 print("*** GRID SCAN SETTINGS ***")
@@ -692,7 +692,7 @@ for episodeNumber in range(EPISODES):
             print('{:.1f},'.format(FFT_dBV_peaks[episodeNumber, direction]), end='\t')
             print('{:.1f},'.format(centroid_frequencies[episodeNumber, direction]), end='\t')
             print('{:.1f}]'.format(surface_velocities_table[episodeNumber, direction]))
-        if STATISTICAL_ANALYSIS == True and episodeNumber >= 1:
+        if STATISTICAL_ANALYSIS == True and episodeNumber >= 2:
             print('Statistical analysis (episode {:d} of {:d}):'.format(episodeNumber+1, EPISODES))
             print('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]')
             for direction in range(scanningDirections):
