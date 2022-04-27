@@ -43,7 +43,7 @@ WINDOWING = True # Set to 'False' to disable windowing before FFT computation
 SMOOTHING_WINDOW = 10 # Hz
 BANDWIDTH_THRESHOLD = 6 # dB
 ZERO_FORCING = True # Enable forcing FFT to zero, everywhere except between FREQUENCY_MIN and FREQUENCY_MAX
-FREQUENCY_MIN = 50 # Hz
+FREQUENCY_MIN = -1_000 # Hz
 FREQUENCY_MAX = 1_000 # Hz
 
 ### STATISTICAL ANALYSIS SETTINGS ###
