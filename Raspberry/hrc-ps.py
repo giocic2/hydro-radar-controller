@@ -48,7 +48,7 @@ FREQUENCY_MAX = 1_000 # Hz
 
 ### STATISTICAL ANALYSIS SETTINGS ###
 STATISTICAL_ANALYSIS = True
-EPISODES = 10
+EPISODES = 5
 DETAILED_REPORT = True # Print surface velocities table on report
 
 print("*** GRID SCAN SETTINGS ***")
@@ -386,7 +386,7 @@ print('Done.')
 
 ### GRID SCAN ###
 for episodeNumber in range(EPISODES):
-    print("Episode {:d} of {:d}:".format(episodeNumber, EPISODES))
+    print("Episode {:d} of {:d}:".format(episodeNumber+1, EPISODES))
     while VCOfreq <= 24500:
         print("*****************")
         print("Scanning direction " + str(thisDirection) + " of " + str(scanningDirections) + "...")
