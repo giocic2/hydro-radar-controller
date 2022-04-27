@@ -755,26 +755,22 @@ with open(completeFileName,'w') as file:
         if DETAILED_REPORT == True:
             file.write('### SURFACE VELOCITY TABLE ###\n')
             file.write('[EP.,\tDEG,\tdBV,\tHz,\tm/s]\n')
-            index = 0
             for episode in range(EPISODES):
-                for directon in directions_DEG:
+                for directon in range(scanningDirections):
                     file.write('[{:d},\t'.format(episode+1))
-                    file.write('{:.1f},\t'.format(directions_DEG[index]))
-                    file.write('{:.1f},\t'.format(FFT_dBV_peaks[index]))
-                    file.write('{:.1f},\t'.format(centroid_frequencies[index]))
-                    file.write('{:.1f}]\n'.format(surface_velocities_table[index]))
-                    index += 1
+                    file.write('{:.1f},\t'.format(directions_DEG[episode,direction]))
+                    file.write('{:.1f},\t'.format(FFT_dBV_peaks[episode,direction]))
+                    file.write('{:.1f},\t'.format(centroid_frequencies[episode,direction]))
+                    file.write('{:.1f}]\n'.format(surface_velocities_table[episode,direction]))
         if STATISTICAL_ANALYSIS == True:
             file.write('### STATISTICAL ANALYSIS (@ episode {:d} of {:d}) ###\n'.format(episodeNumber+1, EPISODES))
             file.write('[scanning angle, mean value, std.dev., S.W. test statistic, S.W. test p-value]\n')
             file.write('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]\n')
-            index = 0
-            for element in directions_DEG:
+            for element in range(scanningDirections):
                 shapiro_test = stats.shapiro(surface_velocities_table[0:episodeNumber,element])
                 file.write('[{:.1f},'.format(directions_DEG[index]), end='\t')
                 file.write('{:.1f},'.format(np.mean(surface_velocities_table[0:episodeNumber,element])), end='\t')
                 file.write('{:.1f},'.format(np.std(surface_velocities_table[0:episodeNumber,element], ddof=1)), end='\t')
                 file.write('{:.1f},'.format(shapiro_test.statistic), end='\t')
                 file.write('{:.2f}]\n'.format(shapiro_test.pvalue))
-                index += 1
 print('Done.')
