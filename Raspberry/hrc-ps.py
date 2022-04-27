@@ -694,6 +694,7 @@ for episodeNumber in range(EPISODES):
             print('{:.1f}]'.format(surface_velocities_table[episodeNumber, direction]))
         if STATISTICAL_ANALYSIS == True and episodeNumber >= 2:
             print('Statistical analysis (episode {:d} of {:d}):'.format(episodeNumber+1, EPISODES))
+            print('[scanning angle, mean value, std.dev., S.W. test statistic, S.W. test p-value]')
             print('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]')
             for direction in range(scanningDirections):
                 shapiro_test = stats.shapiro(surface_velocities_table[:episodeNumber+1,direction])
