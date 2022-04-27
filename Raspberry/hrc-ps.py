@@ -702,6 +702,7 @@ for episodeNumber in range(EPISODES):
                     print('{:.1f},'.format(np.std(surface_velocities_table[:episodeNumber,direction], ddof=1)), end='\t')
                     print('{:.1f},'.format(shapiro_test.statistic), end='\t')
                     print('{:.1f}]'.format(shapiro_test.pvalue))
+    thisDirection = 1
 # Stop the scope
 print('Closing the scope...')
 # handle = chandle
@@ -745,8 +746,8 @@ with open(completeFileName,'w') as file:
     file.write('Smoothing window size (moving average): {:d} Hz\n'.format(SMOOTHING_WINDOW))
     file.write('Threshold for Doppler centroid bandwidth: {:d} dB\n'.format(BANDWIDTH_THRESHOLD))
     file.write('Zero forcing: {} (Enable forcing FFT to zero, everywhere except between FREQUENCY_MIN and FREQUENCY_MAX)\n'.format(ZERO_FORCING))
-    file.write('Minimum frequency of interest: {:d} Hz\n'.format(FREQUENCY_MIN))
-    file.write('Maximum frequency of interest: {:d} Hz\n'.format(FREQUENCY_MAX))
+    file.write('Minimum frequency of interest: {:.1f} Hz\n'.format(FREQUENCY_MIN))
+    file.write('Maximum frequency of interest: {:.1f} Hz\n'.format(FREQUENCY_MAX))
     file.write('### STATISTICAL ANALYSIS SETTINGS ###\n')
     file.write('Statystical analysis: {}\n'.format(STATISTICAL_ANALYSIS))
     file.write('Number of episodes: {:d}\n'.format(EPISODES))
