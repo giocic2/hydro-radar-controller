@@ -386,7 +386,7 @@ print('Done.')
 
 ### GRID SCAN ###
 for episodeNumber in range(EPISODES):
-    print("Episode {} of {}:",format(episodeNumber, EPISODES))
+    print("Episode {:d} of {:d}:".format(episodeNumber, EPISODES))
     while VCOfreq <= 24500:
         print("*****************")
         print("Scanning direction " + str(thisDirection) + " of " + str(scanningDirections) + "...")
@@ -688,14 +688,14 @@ for episodeNumber in range(EPISODES):
         print('[EP.,\tDEG,\tdBV,\tHz,\tm/s]')
         index = 0
         for element in directions_DEG:
-            print('[{},'.format(episodeNumber+1), end='\t')
+            print('[{:d},'.format(episodeNumber+1), end='\t')
             print('{:.1f},'.format(directions_DEG[index]), end='\t')
             print('{:.1f},'.format(FFT_dBV_peaks[episodeNumber, index]), end='\t')
             print('{:.1f},'.format(centroid_frequencies[episodeNumber, index]), end='\t')
             print('{:.1f}]'.format(surface_velocities_table[episodeNumber, directionIndex]))
             index += 1
         if STATISTICAL_ANALYSIS == True:
-            print('Statistical analysis (episode {} of {}):',format(episodeNumber+1, EPISODES))
+            print('Statistical analysis (episode {:d} of {:d}):',format(episodeNumber+1, EPISODES))
             print('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]')
             index = 0
             for element in directions_DEG:
@@ -735,25 +735,25 @@ with open(completeFileName,'w') as file:
     file.write("Projection of that distance on ground level: {0:.2f} m\n".format(antennaHeight / np.tan(tiltAngle_avg)))
     file.write("Horizontal swath @ ground level: {0:.2f} m\n".format(maxSwath))
     file.write('### ACQUISITION SETTINGS ###\n')
-    file.write('Scanning directions: {}\n'.format(scanningDirections))
+    file.write('Scanning directions: {:d}\n'.format(scanningDirections))
     file.write('Raw data: {}\n'.format(RAW_DATA))
     file.write('Sampling frequency: {:,} Hz\n'.format(SAMPLING_FREQUENCY))
     file.write('Acquisition time: {:.1f} s\n'.format(ACQUISITION_TIME))
-    file.write('Total number of samples: {}\n'.format(totalSamples))
-    file.write('Channel A (IFI) range: {} ([1:10] V: 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20 V)\n'.format(CHA_RANGE))
-    file.write('Channel B (IFQ) range: {} ([1:10] V: 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20 V)\n'.format(CHB_RANGE))
+    file.write('Total number of samples: {:d}\n'.format(totalSamples))
+    file.write('Channel A (IFI) range: {:d} ([1:10] V: 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20 V)\n'.format(CHA_RANGE))
+    file.write('Channel B (IFQ) range: {:d} ([1:10] V: 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20 V)\n'.format(CHB_RANGE))
     file.write('Real time measurements: {} (FFT and surface velocity computation)\n'.format(REAL_TIME_MEAS))
-    file.write('FFT resolution: {} Hz\n'.format(FFT_RESOL))
-    file.write('FFT threshold: {} dBV\n'.format(FFT_THRESHOLD))
+    file.write('FFT resolution: {:d} Hz\n'.format(FFT_RESOL))
+    file.write('FFT threshold: {:d} dBV\n'.format(FFT_THRESHOLD))
     file.write('Windowing (hamming): {} (before FFT computation)\n'.format(WINDOWING))
-    file.write('Smoothing window size (moving average): {} Hz\n'.format(SMOOTHING_WINDOW))
-    file.write('Threshold for Doppler centroid bandwidth: {} dB\n'.format(BANDWIDTH_THRESHOLD))
+    file.write('Smoothing window size (moving average): {:d} Hz\n'.format(SMOOTHING_WINDOW))
+    file.write('Threshold for Doppler centroid bandwidth: {:d} dB\n'.format(BANDWIDTH_THRESHOLD))
     file.write('Zero forcing: {} (Enable forcing FFT to zero, everywhere except between FREQUENCY_MIN and FREQUENCY_MAX)\n'.format(ZERO_FORCING))
-    file.write('Minimum frequency of interest: {} Hz\n'.format(FREQUENCY_MIN))
-    file.write('Maximum frequency of interest: {} Hz\n'.format(FREQUENCY_MAX))
+    file.write('Minimum frequency of interest: {:d} Hz\n'.format(FREQUENCY_MIN))
+    file.write('Maximum frequency of interest: {:d} Hz\n'.format(FREQUENCY_MAX))
     file.write('### STATISTICAL ANALYSIS SETTINGS ###\n')
     file.write('Statystical analysis: {}\n'.format(STATISTICAL_ANALYSIS))
-    file.write('Number of episodes: {}\n'.format(EPISODES))
+    file.write('Number of episodes: {:d}\n'.format(EPISODES))
     file.write('\n')
     if REAL_TIME_MEAS == True:
         if DETAILED_REPORT == True:
@@ -762,14 +762,14 @@ with open(completeFileName,'w') as file:
             index = 0
             for episode in range(EPISODES):
                 for directon in directions_DEG:
-                    file.write('[{},\t'.format(episode+1))
+                    file.write('[{:d},\t'.format(episode+1))
                     file.write('{:.1f},\t'.format(directions_DEG[index]))
                     file.write('{:.1f},\t'.format(FFT_dBV_peaks[index]))
                     file.write('{:.1f},\t'.format(centroid_frequencies[index]))
                     file.write('{:.1f}]\n'.format(surface_velocities_table[index]))
                     index += 1
         if STATISTICAL_ANALYSIS == True:
-            file.write('### STATISTICAL ANALYSIS (@ episode {} of {}) ###\n',format(episodeNumber+1, EPISODES))
+            file.write('### STATISTICAL ANALYSIS (@ episode {:d} of {:d}) ###\n',format(episodeNumber+1, EPISODES))
             file.write('[scanning angle, mean value, std.dev., S.W. test statistic, S.W. test p-value]\n')
             file.write('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]\n')
             index = 0
