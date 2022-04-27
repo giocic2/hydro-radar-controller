@@ -768,7 +768,7 @@ with open(completeFileName,'w') as file:
             file.write('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]\n')
             for element in range(scanningDirections):
                 shapiro_test = stats.shapiro(surface_velocities_table[0:episodeNumber,element])
-                file.write('[{:.1f},'.format(directions_DEG[index]), end='\t')
+                file.write('[{:.1f},'.format(directions_DEG[element]), end='\t')
                 file.write('{:.1f},'.format(np.mean(surface_velocities_table[0:episodeNumber,element])), end='\t')
                 file.write('{:.1f},'.format(np.std(surface_velocities_table[0:episodeNumber,element], ddof=1)), end='\t')
                 file.write('{:.1f},'.format(shapiro_test.statistic), end='\t')
