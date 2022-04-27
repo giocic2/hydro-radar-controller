@@ -695,7 +695,7 @@ for episodeNumber in range(EPISODES):
             print('{:.1f}]'.format(surface_velocities_table[episodeNumber, directionIndex]))
             index += 1
         if STATISTICAL_ANALYSIS == True:
-            print('Statistical analysis (episode {:d} of {:d}):',format(episodeNumber+1, EPISODES))
+            print('Statistical analysis (episode {:d} of {:d}):'.format(episodeNumber+1, EPISODES))
             print('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]')
             index = 0
             for element in directions_DEG:
@@ -769,7 +769,7 @@ with open(completeFileName,'w') as file:
                     file.write('{:.1f}]\n'.format(surface_velocities_table[index]))
                     index += 1
         if STATISTICAL_ANALYSIS == True:
-            file.write('### STATISTICAL ANALYSIS (@ episode {:d} of {:d}) ###\n',format(episodeNumber+1, EPISODES))
+            file.write('### STATISTICAL ANALYSIS (@ episode {:d} of {:d}) ###\n'.format(episodeNumber+1, EPISODES))
             file.write('[scanning angle, mean value, std.dev., S.W. test statistic, S.W. test p-value]\n')
             file.write('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]\n')
             index = 0
