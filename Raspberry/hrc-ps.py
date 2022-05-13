@@ -684,7 +684,8 @@ for episodeNumber in range(EPISODES):
                 print('Resulting surface velocity: {:.1f}'.format((3e8 * (stopBand + startBand)/2) / (2 * (VCOfreq * 1e6) * np.cos(np.deg2rad(directions_DEG[directionIndex]) * np.cos(tiltAngle_avg)))), ' m/s')
         elapsedTime = time.time() - startTime
         print('Acquisition completed. Elapsed time (block acquisition and data management): {:.1f}'.format(elapsedTime) + ' s.')
-        directionIndex += 1
+        if scanningDirections != 1:
+            directionIndex += 1
     if REAL_TIME_MEAS == True:
         print('Recap:')
         print('[EP.,\tDEG,\tdBV,\tHz,\tm/s]')
@@ -696,7 +697,7 @@ for episodeNumber in range(EPISODES):
             print('{:.1f}]'.format(surface_velocities_table[episodeNumber, direction]))
         if STATISTICAL_ANALYSIS == True and episodeNumber >= 2:
             print('Statistical analysis (episode {:d} of {:d}):'.format(episodeNumber+1, EPISODES))
-            print('[scanning angle, mean value, std.dev., S.W. test statistic, S.W. test p-value]')
+            print('[angle, mean, std.dev., S.W. stat, S.W. p-value]')
             print('[DEG,\tm/s,\tm/s,\tS.W.,\tp-value]')
             for direction in range(scanningDirections):
                 shapiro_test = stats.shapiro(surface_velocities_table[:episodeNumber+1,direction])
@@ -746,7 +747,7 @@ with open(completeFileName,'w') as file:
     file.write('Channel A (IFI) range: {:d} ([1:10]: 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20 V)\n'.format(CHA_RANGE))
     file.write('Channel B (IFQ) range: {:d} ([1:10]: 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20 V)\n'.format(CHB_RANGE))
     file.write('Real time measurements: {} (FFT and surface velocity computation)\n'.format(REAL_TIME_MEAS))
-    file.write('FFT resolution: {:d} Hz\n'.format(FFT_RESOL))
+    file.write('FFT resolution: {:f} Hz\n'.format(FFT_RESOL))
     file.write('FFT threshold: {:d} dBV\n'.format(FFT_THRESHOLD))
     file.write('Windowing (hamming): {} (before FFT computation)\n'.format(WINDOWING))
     file.write('Smoothing window size (moving average): {:d} Hz\n'.format(SMOOTHING_WINDOW))
