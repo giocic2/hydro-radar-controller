@@ -32,13 +32,13 @@ ACCELL_AVERAGES = 20
 
 RAW_DATA = False # Set to 'False' to disable saving of raw data in .csv format
 SAMPLING_FREQUENCY = 100e3 # Hz
-ACQUISITION_TIME = 0.1 # s
-CHA_RANGE = 5 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
-CHB_RANGE = 5 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
+ACQUISITION_TIME = 2 # s
+CHA_RANGE = 4 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
+CHB_RANGE = 4 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
 
 REAL_TIME_MEAS = True # Set to 'False' to disable real time signal processing (FFT and surface velocity computation)
-FFT_RESOL = 1 # Hz
-FFT_THRESHOLD = -80 # dBV
+FFT_RESOL = 0.2 # Hz
+FFT_THRESHOLD = -60 # dBV
 WINDOWING = True # Set to 'False' to disable windowing before FFT computation
 SMOOTHING_WINDOW = 10 # Hz
 BANDWIDTH_THRESHOLD = 6 # dB
@@ -649,8 +649,10 @@ for episodeNumber in range(EPISODES):
             FFT_norm_dB_smooth_max = np.amax(FFT_norm_dB_smooth)
             peakFreq = freqAxis_Hz[FFT_norm_dB.argmax()] # If two identical maxima, only the first occurrence is shown (negative frequency)
             # Doppler centroid bandwidth
-            if np.amax(FFT_dBV) < FFT_THRESHOLD:
+            if (np.amax(FFT_dBV) < FFT_THRESHOLD):
                 print('WARNING: Target not detected.')
+            elif (FFT_dBV[minBin] >= np.amax(FFT_dBV) - BANDWIDTH_THRESHOLD):
+                print('WARNING: Window for zero forcing is too narrow.')
             else:
                 freqIndex = 0
                 stopIndex = 0
