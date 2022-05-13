@@ -298,7 +298,8 @@ if scanningDirections != 1:
     VCOfreq_step = 1000 / (scanningDirections - 1)
     VCOfreq = 23500
 if scanningDirections == 1:
-    VCOfreq = int(input('Enter transmitter frequency (23500:50:24500): '))
+    VCOfreq_entered = int(input('Enter transmitter frequency (23500:50:24500): '))
+    VCOfreq = VCOfreq_entered
     VCOfreq_step = 1001 # Just to put VCOfreq > 24500 at next cycle
 VCOfreq_str = str(VCOfreq)
 directions_DEG = np.zeros(scanningDirections)
@@ -707,6 +708,8 @@ for episodeNumber in range(EPISODES):
                 print('{:.1f},'.format(shapiro_test.statistic), end='\t')
                 print('{:.3f}]'.format(shapiro_test.pvalue))
     thisDirection = 1
+    if scanningDirections == 1:
+        VCOfreq = VCOfreq_entered
     if scanningDirections != 1:
         VCOfreq = 23500
     directionIndex = 0
