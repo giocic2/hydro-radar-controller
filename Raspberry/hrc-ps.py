@@ -706,7 +706,8 @@ for episodeNumber in range(EPISODES):
                 print('{:.1f},'.format(shapiro_test.statistic), end='\t')
                 print('{:.3f}]'.format(shapiro_test.pvalue))
     thisDirection = 1
-    VCOfreq = 23500
+    if scanningDirections != 1:
+        VCOfreq = 23500
     directionIndex = 0
 # Stop the scope
 print('Closing the scope...')
