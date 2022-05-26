@@ -33,10 +33,10 @@ ACCELL_AVERAGES = 20
 PLL_ON = True # Doppler radar controlled by PLL
 
 RAW_DATA = True # Set to 'False' to disable saving of raw data in .csv format
-SAMPLING_FREQUENCY = 100e3 # Hz
-ACQUISITION_TIME = 2 # s
-CHA_RANGE = 4 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
-CHB_RANGE = 4 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
+SAMPLING_FREQUENCY = 2e3 # Hz
+ACQUISITION_TIME = 10 # s
+CHA_RANGE = 8 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
+CHB_RANGE = 8 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
 triggerDelay = int(SAMPLING_FREQUENCY / 1) # samples
 
 REAL_TIME_MEAS = True # Set to 'False' to disable real time signal processing (FFT and surface velocity computation)
