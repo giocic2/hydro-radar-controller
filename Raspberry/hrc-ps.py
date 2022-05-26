@@ -30,6 +30,8 @@ ANTENNA_CENTER_POSITION = 0.12 # m. Distance between pivot and center of RX ante
 MAX_SCAN_ANGLE = np.deg2rad(15)
 ACCELL_AVERAGES = 20
 
+PLL_ON = True # Doppler radar controlled by PLL
+
 RAW_DATA = False # Set to 'False' to disable saving of raw data in .csv format
 SAMPLING_FREQUENCY = 100e3 # Hz
 ACQUISITION_TIME = 2 # s
@@ -469,31 +471,32 @@ for episodeNumber in range(EPISODES):
             loadEnable.off()
             time.sleep(1e-4)
 
-        # ADF4158 power-on
-        chipEnable.on()
+        if PLL_ON == True:
+            # ADF4158 power-on
+            chipEnable.on()
 
-        # ADF4158 programming
-        print('ADF4158 programming started...')
-        spi0.open(0,0)
-        spi0.max_speed_hz = 122000
-        # CPOL=0, CPHA=1
-        spi0.mode = 0b00
-        time.sleep(1e-4)
+            # ADF4158 programming
+            print('ADF4158 programming started...')
+            spi0.open(0,0)
+            spi0.max_speed_hz = 122000
+            # CPOL=0, CPHA=1
+            spi0.mode = 0b00
+            time.sleep(1e-4)
 
-        transferRegister(R7)
-        transferRegister(R6_load1)
-        transferRegister(R6_load2)
-        transferRegister(R5_load1)
-        transferRegister(R5_load2)
-        transferRegister(R4)
-        transferRegister(R3)
-        transferRegister(R2)
-        transferRegister(R1)
-        transferRegister(R0) # last one to be loaded (double-buffered)
+            transferRegister(R7)
+            transferRegister(R6_load1)
+            transferRegister(R6_load2)
+            transferRegister(R5_load1)
+            transferRegister(R5_load2)
+            transferRegister(R4)
+            transferRegister(R3)
+            transferRegister(R2)
+            transferRegister(R1)
+            transferRegister(R0) # last one to be loaded (double-buffered)
 
-        spi0.close()
-        time.sleep(1e-4)
-        print('ADF4158 programming ended.')
+            spi0.close()
+            time.sleep(1e-4)
+            print('ADF4158 programming ended.')
 
         # Block sampling mode
         # The scope stores data in internal buffer memory and then transfer it to the PC via USB.
