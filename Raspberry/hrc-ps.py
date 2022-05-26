@@ -32,7 +32,7 @@ ACCELL_AVERAGES = 20
 
 PLL_ON = True # Doppler radar controlled by PLL
 
-RAW_DATA = False # Set to 'False' to disable saving of raw data in .csv format
+RAW_DATA = True # Set to 'False' to disable saving of raw data in .csv format
 SAMPLING_FREQUENCY = 100e3 # Hz
 ACQUISITION_TIME = 2 # s
 CHA_RANGE = 4 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
@@ -50,7 +50,7 @@ FREQUENCY_MAX = 1_000 # Hz
 
 ### STATISTICAL ANALYSIS SETTINGS ###
 STATISTICAL_ANALYSIS = True
-EPISODES = 5 # at least 3
+EPISODES = 5 # at least 3, if 'STATISTICAL_ANALYSIS' set to 'True'
 DETAILED_REPORT = True # Print surface velocities table on report
 
 print("*** GRID SCAN SETTINGS ***")
