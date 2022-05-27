@@ -37,7 +37,8 @@ SAMPLING_FREQUENCY = 2e3 # Hz
 ACQUISITION_TIME = 10 # s
 CHA_RANGE = 8 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
 CHB_RANGE = 8 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
-triggerDelay = int(SAMPLING_FREQUENCY / 1) # samples
+TRIGGER_DELAY_SEC = 1 # trigger delay in seconds
+triggerDelay_samples = int(SAMPLING_FREQUENCY * TRIGGER_DELAY_SEC) # trigger delay in number of samples
 
 REAL_TIME_MEAS = True # Set to 'False' to disable real time signal processing (FFT and surface velocity computation)
 FFT_RESOL = 0.2 # Hz
@@ -362,7 +363,7 @@ assert_pico_ok(status["setChB"])
 # direction = PS2000A_RISING = 2
 # delay = 0 sample periods
 # auto Trigger = 1000 ms (if no trigger events occurs)
-status["trigger"] = ps.ps2000aSetSimpleTrigger(chandle, 1, 0, 0, 2, triggerDelay, 5000)
+status["trigger"] = ps.ps2000aSetSimpleTrigger(chandle, 1, 0, 0, 2, triggerDelay_samples, 5000)
 assert_pico_ok(status["trigger"])
 # Set number of pre and post trigger samples to be collected
 preTriggerSamples = round(0)
