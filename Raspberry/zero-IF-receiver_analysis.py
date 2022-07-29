@@ -9,7 +9,7 @@ SAMPLES = int(SAMPLING_FREQUENCY*END_TIME)
 FFT_RESOL = 0.1 # Hz
 freqBins_FFT = int(2**np.ceil(np.log2(abs(SAMPLING_FREQUENCY/2/FFT_RESOL))))
 
-DC_i = 0.1
+DC_i = 0
 eps_i = 1
 A_i = 1
 freq_i = 27 # Hz
