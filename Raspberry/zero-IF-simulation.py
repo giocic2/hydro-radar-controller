@@ -3,29 +3,28 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # %%
-END_TIME = 1 # s
-SAMPLING_FREQUENCY = 1e3
+END_TIME = 0.5 # s
+SAMPLING_FREQUENCY = 5e3
 SAMPLES = int(SAMPLING_FREQUENCY*END_TIME)
 FFT_RESOL = 0.1 # Hz
 freqBins_FFT = int(2**np.ceil(np.log2(abs(SAMPLING_FREQUENCY/2/FFT_RESOL))))
+timeAxis = np.linspace(start=0,stop=END_TIME,num=SAMPLES,endpoint=False)
 
-DC_i = 0
-eps_i = 1
-A_i = 1
-freq_i = 27 # Hz
-phi_i = np.deg2rad(30)
+freq_LO = 77e9 # Hz
+wavelength = 3e8 / freq_LO # m
+target_velocity = 0 # m/s
+scaling_factor = 100
+target_vibration_amplitude = 100e-6 # m
+target_vibration_frequency = 50 # Hz
 
-DC_q = 0
-eps_q = 1
-A_q = 1
-delta_phi = np.deg2rad(2)
-freq_q = 27 # Hz
-phi_q = np.deg2rad(30)
+x_LO = np.exp(2j*(np.pi*freq_LO*timeAxis))
+x_RX = np.exp(2j*(np.pi*freq_LO*timeAxis + 2*np.pi*target_velocity/wavelength*timeAxis + 2*target_vibration_amplitude/wavelength*2*np.pi*np.cos(2*np.pi*target_vibration_frequency*timeAxis)))
+x_IF = x_LO * x_RX
+x_IF = x_IF - np.mean(x_IF)
 
 # %%
-timeAxis = np.linspace(start=0,stop=END_TIME,num=SAMPLES,endpoint=False)
-ifi = DC_i+eps_i*A_i*np.cos(2*np.pi*freq_i*timeAxis+phi_i)
-ifq = DC_q+eps_q*A_q*np.cos(2*np.pi*freq_q*timeAxis+phi_q-np.pi/2+delta_phi)
+ifi = np.real(x_IF)
+ifq = np.imag(x_IF)
 plt.plot(timeAxis, ifi)
 plt.plot(timeAxis, ifq)
 plt.legend(("ifi","ifq"))
@@ -47,7 +46,7 @@ freqAxis_Hz = freqAxis * SAMPLING_FREQUENCY
 plt.plot(freqAxis_Hz, FFT_dB)
 plt.ylabel('spectrum magnitude (dBV)')
 plt.xlabel('frequency (Hz)')
-plt.axis([-50, 50, -80, 0])
+plt.axis([-1000, 1000, -200, 0])
 plt.grid(True)
 plt.show()
 
