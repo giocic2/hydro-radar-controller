@@ -1,4 +1,3 @@
-
 #!/usr/bin/python
 # Hydro Radar Controller with acquisition system based on Picoscope.
 
@@ -146,7 +145,7 @@ delta_z = 500
 
 # Offset expressed in LSB.
 # We use this instead of OFS_ registers for finer tuning.
-# These numbers depends on calibration.py results for a specific sensor.
+# These numbers depends on calibration results for a specific sensor.
 x_offset = round((x_min + x_max) / 2)
 y_offset = round((y_min + y_max) / 2)
 z_offset = round((z_min + z_max) / 2)
@@ -192,7 +191,7 @@ while (continueCalibration == True):
 		print("x: ", round(x_g_avg))
 	accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00000000)
 	accelerometer._write_register_byte(adafruit_adxl34x._REG_BW_RATE, 0b00001000)
-	whatNext = input("Repeat calibration? [y/n]: ")
+	whatNext = input("Repeat tilt angle measurement? [y/n]: ")
 	continueTakingUserInput = True
 	while continueTakingUserInput == True:
 		if whatNext == 'y':
