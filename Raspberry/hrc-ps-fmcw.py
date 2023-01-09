@@ -218,9 +218,9 @@ if PLL_ON == True:
 
     transferRegister(R7)
     transferRegister(R6_load1)
-    transferRegister(R6_load2)
+#    transferRegister(R6_load2)
     transferRegister(R5_load1)
-    transferRegister(R5_load2)
+#    transferRegister(R5_load2)
     transferRegister(R4)
     transferRegister(R3)
     transferRegister(R2)
