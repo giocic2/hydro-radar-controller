@@ -27,7 +27,7 @@ from scipy import stats
 PLL_ON = True # Doppler radar controlled by PLL
 
 RAW_DATA = True # Set to 'False' to disable saving of raw data in .csv format
-SAMPLING_FREQUENCY = 100e3 # Hz
+SAMPLING_FREQUENCY = 1e6 # Hz
 ACQUISITION_TIME = 10e-3 # s
 CHA_RANGE = 8 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
 CHB_RANGE = 8 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
