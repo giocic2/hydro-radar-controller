@@ -27,10 +27,10 @@ from scipy import stats
 PLL_ON = True # Doppler radar controlled by PLL
 
 RAW_DATA = True # Set to 'False' to disable saving of raw data in .csv format
-SAMPLING_FREQUENCY = 1e6 # Hz
-ACQUISITION_TIME = 10e-3 # s
-CHA_RANGE = 9 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
-CHB_RANGE = 9 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
+SAMPLING_FREQUENCY = 10e6 # Hz
+ACQUISITION_TIME = 50e-3 # s
+CHA_RANGE = 5 # Picoscope Ch.A ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
+CHB_RANGE = 5 # Picoscope Ch.B ranges (1:10): 20m, 50m, 100m, 200m, 500m, 1, 2, 5, 10, 20
 TRIGGER_DELAY_SEC = 1 # trigger delay in seconds
 triggerDelay_samples = int(SAMPLING_FREQUENCY * TRIGGER_DELAY_SEC) # trigger delay in number of samples
 
@@ -77,10 +77,10 @@ MSB = 0b00000000
 # bit0: Analog multiplexer control bit "AMUX1" (0)
 
 ### LSB ###
-# LSB = 0b00001000 # TX full power
+LSB = 0b00001000 # TX full power
 # LSB = 0b00001101 # TX power reduced of 4dB
 # LSB = 0b00001110 # TX power reduced of 6dB
-LSB = 0b00001111 # TX power reduced of 9dB
+# LSB = 0b00001111 # TX power reduced of 9dB
 
 # bit7: Analog multiplexer control bit "AMUX0" (0)
 # bit6: Active-low 64k divider (ON)
@@ -184,12 +184,12 @@ assert_pico_ok(status["getTimebase2"])
 print('Done.')
 
 # ADF4158 registers
-R0 =        [0x80, 0x24, 0xB8, 0x00]
+R0 =        [0x80, 0x23, 0xF0, 0x00]
 R1 =        [0x00, 0x00, 0x00, 0x01]
-R2 =        [0x07, 0x10, 0x80, 0xCA]
+R2 =        [0x07, 0x10, 0x83, 0xC2]
 R3 =        [0x00, 0x00, 0x04, 0x43]
 R4 =        [0x00, 0x18, 0x00, 0x84]
-R5_load1 =  [0x00, 0x13, 0x33, 0x35]
+R5_load1 =  [0x00, 0x1B, 0x33, 0x35]
 # R5_load2 =  [0x00, 0x13, 0x33, 0x35]
 R6_load1 =  [0x00, 0x00, 0x1F, 0x46]
 # R6_load2 =  [0x00, 0x00, 0x1F, 0x46]
